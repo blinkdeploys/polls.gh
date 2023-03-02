@@ -20,7 +20,6 @@ def get_all_files():
 
 def get_model(name, row, count=0):
 
-    '''
     # geo
 
     if name == "nation":
@@ -69,7 +68,6 @@ def get_model(name, row, count=0):
                         constituency_id=int(constituency),
                         title=row['title'])
         return (exists, record)
-    '''
 
 
     # poll
@@ -172,8 +170,8 @@ def get_model(name, row, count=0):
                         result.full_clean()
                         result.save()
                         count = count + 1
+                total_count = total_count + count
             print(f'{count} Polling stations recorded for candidate {candidate.full_name}')
-        total_count = total_count + count
         print(f'{total_count} Results created successfully')
         return (True, None)
 
@@ -192,9 +190,7 @@ def get_model(name, row, count=0):
         exists = model.objects.filter(id=row['id']).first()
         return (exists, model(id=row['id'],
                          title=row['title']))
-    '''
 
-    '''
     if name == "agent":
         model = Agent
         if model.objects.count() <= 80:
@@ -295,7 +291,6 @@ class Command(BaseCommand):
                             else:
                                 try:
                                     if model is not None:
-                                        print(model)
                                         model.full_clean()
                                         model.save()
                                         self.stdout.write(self.style.SUCCESS(f'Data imported successfully'))
