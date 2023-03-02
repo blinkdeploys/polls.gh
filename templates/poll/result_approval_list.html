@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Result Approvals{% endblock %}
+
+{% if user.is_authenticated %}
+
+{% block content %}
+<div class="container">
+
+
+  <h2 class="mt-4 mb-4">Result Approvals</h2>
+
+  <div class="col">
+    <table class="table table-hover">
+      <thead>
+          <tr>
+              <th class="scope">ID</th>
+              <th class="scope">Code</th>
+              <th class="scope">Title</th>
+              <th class="scope">Constituency</th>
+              <th class="scope">Actions</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for row in data %}
+            <tr scope="row">
+              <td><input type="checkbox" /></td>
+              <td>{{ row.code }}</td>
+              <td><a href="/geo/result_approval/{{ row.id }}">{{ row.title }}</a></td>
+              <td>{{ row.constituency.title }}</td>
+              <td width="5%"><a href="#" class="btn btn-light">Delete</a>
+            </tr>
+          {% endfor %}
+      </tbody>
+    </table>
+    
+    <div class="form-actions mb-6">
+      <a href="{{ prev_link }}" class="btn btn-light">Previous</a>
+      <a href="{{ next_link }}" class="btn btn-light">Next</a>
+    </div>
+
+  </div>
+
+</div>
+  
+{% endblock %}
+
+{% endif %}

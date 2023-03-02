@@ -1,0 +1,83 @@
+<div>
+    <div class="bold mb-4 mt-4 row">
+        <div class="col-10">
+            <p>Hi {{ user.username }}!</p>
+        </div>
+        <div class="col">
+            <p><a href="{% url 'logout' %}">Log Out</a></p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="card-columns col">
+            <a href="/poll/results" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+                <div class="card-body">
+                    <h5 class="card-title">Collate Results</h5>
+                    <p class="card-text">Enter election results from polling stations.</p>
+                </div>
+            </a>
+            <a href="/poll/result_approvals" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+                <div class="card-body">
+                    <h5 class="card-title">Approve Results</h5>
+                    <p class="card-text">Approve and publish election results at polling stations, aggregated results from constituencies, regional and national.</p>
+                </div>
+            </a>
+            <a href="#" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+                <div class="card-body">
+                    <h5 class="card-title">View Reports</h5>
+                    <p class="card-text">View election results from collated results at all levels (constituencies, regional and national).</p>
+                </div>
+            </a>
+        </div>
+        <div class="card-columns col">
+            <a href="#" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+                <div class="card-body">
+                    <h5 class="card-title">Review Agents</h5>
+                    <p class="card-text">Review all party agents at all levels.</p>
+                </div>
+            </a>
+            <a href="#" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+                <div class="card-body">
+                    <h5 class="card-title">Review Candidates</h5>
+                    <p class="card-text">Ensure that all candidates are present and accounted for all locations and political parties.</p>
+                </div>
+            </a>
+            <a href="#" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+                <div class="card-body">
+                    <h5 class="card-title">Review Election Events</h5>
+                    <p class="card-text">Update election dates and events</p>
+                </div>
+            </a>
+        </div>
+        <div class="card-columns col">
+            <a href="#" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+                <div class="card-body">
+                    <h5 class="card-title">Location Setup</h5>
+                    <p class="card-text">Validate all election locations (regions, constituencies and polling stations).</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-4">
+        </div>
+        <div class="col-4">
+        </div>
+        <div class="col-4">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+        </div>
+        <div class="col-4">
+        </div>
+        <div class="col-4">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+        </div>
+    </div>
+</div>

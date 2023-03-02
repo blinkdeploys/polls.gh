@@ -1,0 +1,18 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+  {% if user.is_authenticated %}
+
+    {% include 'layout/nav_grid.html' with user=user only%}
+
+  {% else %}
+
+    <p>You are not logged in</p>
+    <a href="{% url 'login' %}">Log In</a>
+
+  {% endif %}
+{% endblock %}

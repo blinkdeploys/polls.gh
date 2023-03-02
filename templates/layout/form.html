@@ -1,0 +1,22 @@
+{% if user.is_authenticated %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post">
+
+    {% csrf_token %}
+    <!-- {{ form.as_p }} -->
+    {% for element in elements %}
+        <div class="fieldWrapper mt-3 mb-3">
+            {{ element.errors }}
+            <div>{{ element.label_tag }}</div>
+            <div>{{ element }}</div>
+        </div>
+    {% endfor %}
+
+    <div class="form-actions mt-4">
+      <button type="submit" class="btn btn-primary">Save {{title}}</button>
+      <a href="/{{ list_path }}" class="btn btn-light">Cancel</a>
+    </div>
+</form>
+{% endblock %}
+{% endif %}

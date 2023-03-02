@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %}Nation{% endblock %}
+
+{% block content %}
+
+{% include 'layout/form.html' with title="Constituency" list_path="geo/constituencies" elements=form user=user only%}
+
+{% endblock %}
