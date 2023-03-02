@@ -25,7 +25,6 @@ class Party(models.Model):
 		candidates = self.candidates.all()
 		for candidate in candidates:
 			for result in candidate.results.all():
-				print(result, result.total_votes)
 				total_votes = total_votes + int(result.total_votes)
 		return total_votes
 
