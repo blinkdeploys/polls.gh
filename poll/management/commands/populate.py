@@ -188,8 +188,20 @@ def get_model(name, row, count=0):
     if name == "user":
         model = User
         exists = model.objects.filter(id=row['id']).first()
-        return (exists, model(id=row['id'],
-                         title=row['title']))
+        model = User(
+                password=password,
+                email=faker.unique().email(),
+                username=faker.username(),
+                first_name=faker.first_name(),
+                last_name=faker.last_name(),
+                date_join=now(),
+                is_active=False,
+                is_staff=False,
+                is_superuser=False,
+            )
+        model.set_password(password)
+        model.save()
+        return True, None
 
     if name == "agent":
         model = Agent

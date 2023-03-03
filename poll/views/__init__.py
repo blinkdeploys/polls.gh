@@ -1,3 +1,4 @@
+from .home import index_view
 from .event import event_list, event_detail
 from .position import position_list, position_detail
 from .result import result_list, result_detail

@@ -9,6 +9,21 @@
     </div>
 
     <div class="row">
+        {% for col in data %}
+            <div class="card-columns col">
+                {% for row in col %}
+                <a href="{{ row.url }}" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ row.title }}</h5>
+                        <p class="card-text">{{ row.details }}</p>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="row" hidden>
         <div class="card-columns col">
             <a href="/poll/results" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
                 <div class="card-body">
@@ -36,13 +51,13 @@
                     <p class="card-text">Review all party agents at all levels.</p>
                 </div>
             </a>
-            <a href="#" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+            <a href="people/candidates" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
                 <div class="card-body">
                     <h5 class="card-title">Review Candidates</h5>
                     <p class="card-text">Ensure that all candidates are present and accounted for all locations and political parties.</p>
                 </div>
             </a>
-            <a href="#" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+            <a href="poll/events" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
                 <div class="card-body">
                     <h5 class="card-title">Review Election Events</h5>
                     <p class="card-text">Update election dates and events</p>
@@ -50,7 +65,7 @@
             </a>
         </div>
         <div class="card-columns col">
-            <a href="#" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
+            <a href="/geo" class="card text-dark bg-light mb-3" style="max-width: 18rem; text-decoration: none;">
                 <div class="card-body">
                     <h5 class="card-title">Location Setup</h5>
                     <p class="card-text">Validate all election locations (regions, constituencies and polling stations).</p>

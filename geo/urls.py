@@ -6,6 +6,7 @@ from geo import views as geo_views
 
 
 urlpatterns = [
+    url(r'^$', geo_views.home_view, name="geo_home"),
     url(r'^nations/$', geo_views.nation_list, name="nation_list"),
     url(r'^nation/$', geo_views.nation_detail, name="nation_detail"),
     url(r'^nation/(?P<pk>[0-9]+)$', geo_views.nation_detail, name="nation_detail"),

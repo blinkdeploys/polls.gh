@@ -39,7 +39,8 @@ urlpatterns = [
     # app/ reset/done/ [name='password_reset_complete']
 
 
-    path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    # path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    path('', poll_views.index_view, name='home'),
 
     path("geo/", include("geo.urls")),
     path("api/geo/", include("geo.api.urls")),
