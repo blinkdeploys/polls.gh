@@ -21,14 +21,14 @@ services:
       sh -c '
         python manage.py collectstatic --noinput
         python manage.py migrate --noinput
-        python manage.py populate --noinput
+        python manage.py populate
         uwsgi --http "0.0.0.0:8000" --module architectexample.wsgi:application --master --processes 4 --threads 2 --static-map /static=/code/static
       '
     interfaces:
       main: 8000
     environment:
       DEBUG: 'False'
-      ALLOWED_HOST: .${{ ingresses.web.host }}
+      ALLOWED_HOST: '*' # .${{ ingresses.web.host }}
       SECRET_KEY: ${{ parameters.django_secret_key }}
       POSTGRES_DB: ${{ services.db.environment.POSTGRES_DB }}
       POSTGRES_USER: ${{ services.db.environment.POSTGRES_USER }}
