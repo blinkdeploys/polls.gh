@@ -37,7 +37,8 @@ class Result(models.Model):
                              "account.User",
                              on_delete=models.CASCADE,
                              help_text=_("Constituency agent that recorded"),
-                             related_name='results')
+                             related_name='results',
+                             default=None, null=True, blank=True)
     status = models.CharField(max_length=35, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)
 
     class Meta:
