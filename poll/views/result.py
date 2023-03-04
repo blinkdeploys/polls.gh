@@ -11,8 +11,9 @@ from people.serializers import PartySerializer, CandidateSerializer
 from django.contrib.contenttypes.models import ContentType
 from poll.forms import ResultForm
 from poll.constants import ROWS_PER_PAGE
-from django.db.models import Prefetch
+from django.db.models import Q, Prefetch
 from poll.constants import StatusChoices
+
 
 
 def result_list(request):
@@ -67,7 +68,7 @@ def station_list(request):
     
     # result = Result.objects.first()
     stations = Station.objects \
-                      .filter(title__icontains=q) \
+                      .filter(Q(title__icontains=q) | Q(code__icontains=q)) \
                       .all()
     # candidates = Candidate.objects.all()
 

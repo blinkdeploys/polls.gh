@@ -29,7 +29,16 @@
 
             {% for station in stations %}
                 <tr>
-                    <td><a href="/poll/result/station/{{ station.pk }}">{{ station.title }}</a></td>
+                    <td>
+                        <div class="row">
+                            <div class="col">
+                                {{ station.code }}
+                            </div>
+                            <div class="col-8">
+                                <a href="/poll/result/station/{{ station.pk }}">{{ station.title }}</a>
+                            </div>
+                        </div>
+                    </td>
                     <td colspan="2">
                         <div align="right">0</div>
                     </td>
