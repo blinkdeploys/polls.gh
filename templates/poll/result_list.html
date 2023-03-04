@@ -9,7 +9,7 @@
 <h2 class="mt-4 mb-4">{{ title }}</h2>
 <div class="mt-3 mb-2">
     {% if positions is not None %}
-        <div style="display:inline;"><a href="/poll/result/stations/">Stations</a></div>
+        <div style="display:inline;"><a href="/poll/result/stations/">Polling Stations</a></div>
         {% if candidates is not None %}
             <div style="display:inline;">/ <a href="#">Positions</a></div>
         {% endif %}
@@ -20,7 +20,7 @@
             <!--stations-->
             <tr>
                 <td>
-                    <div style="font-weight: bold;">Stations</div>
+                    <div style="font-weight: bold;">Polling Stations</div>
                 </td>
                 <td colspan="2">
                     {% include 'layout/search.html' %}
@@ -34,7 +34,7 @@
                             <div class="col">
                                 {{ station.code }}
                             </div>
-                            <div class="col-8">
+                            <div class="col-9">
                                 <a href="/poll/result/station/{{ station.pk }}">{{ station.title }}</a>
                             </div>
                         </div>
@@ -91,17 +91,28 @@
                         <td></td>
                         <td></td>
                     </tr>
+                    <tr>
+                        <td colspan="3">
+                            <div class="row" style="font-weight: bold;">
+                                <div class="col-2">Party</div>
+                                <div class="col-4">Candidate Name</div>
+                                <div class="col-1" align="center">Votes</div>
+                            </div>
+                        </td>
+                    </tr>
                     {% for candidate in candidates %}
                     <tr>
                         <td colspan="3">
                             <div class="row">
-                                <div class="col-10">
+                                <div class="col-2">
+                                    {{ candidate.party.code }}
+                                </div>
+                                <div class="col-4">
                                     {{ candidate.full_name }}
-                                    ({{ candidate.party.title }})
                                     <!--a href="/poll/result/station/{{ station.pk }}/position/{{ position.pk }}/candidate/{{ candidate.pk }}">
                                     </a-->
                                 </div>
-                                <div class="col">
+                                <div class="col-2">
                                     <input name="candidate" value="{{ candidate.pk }}" class="form-control" type="hidden" placeholder="enter count for candidate" />
                                     {% if candidate.station_results %}
                                         {% for result in candidate.station_results|slice:":1" %}
@@ -111,10 +122,54 @@
                                         <input name="total_votes" value="" class="form-control" type="number" placeholder="enter count for candidate" />
                                     {% endif %}
                                 </div>
+                                <div class="col-1">
+                                </div>
                             </div>
                         </td>
                     </tr>
                     {% endfor %}
+                    <tr style="font-weight: bold;">
+                        <td colspan="3">
+                            <div class="row">
+                                <div class="col-2">
+                                    A
+                                </div>
+                                <div class="col-4">
+                                    Total Valid Votes
+                                </div>
+                                <div class="col-6">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr style="font-weight: bold;">
+                        <td colspan="3">
+                            <div class="row">
+                                <div class="col-2">
+                                    B
+                                </div>
+                                <div class="col-4">
+                                    Total Rejected Votes
+                                </div>
+                                <div class="col-6">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr style="font-weight: bold;">
+                        <td colspan="3">
+                            <div class="row">
+                                <div class="col-2">
+                                    C
+                                </div>
+                                <div class="col-4">
+                                    Total Votes in Ballot Box
+                                </div>
+                                <div class="col-6">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                     <tr>
                         <td colspan="3">
                             <div align="right">
