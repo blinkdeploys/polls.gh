@@ -1,6 +1,6 @@
 from django.db import models
 
-ROWS_PER_PAGE = 30
+ROWS_PER_PAGE = 20
 
 class NameTitleChoices(models.TextChoices):
     MR='Mr.'

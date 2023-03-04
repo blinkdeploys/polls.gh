@@ -3,7 +3,15 @@
 {% load filtertags %}
 <div class="container">
 
-  <h2 class="mt-4 mb-4">{{ title }}</h2>
+  <div class="row mt-4 mb-4">
+    <div class="col-9">
+      <h2 class="">{{ title }}</h2>
+    </div>
+    <div class="col">
+        {% include 'layout/search.html' %}
+    </div>
+  </div>
+  
 
   <div class="col">
     <table class="table table-hover">
@@ -22,7 +30,7 @@
               <td><input type="checkbox" /></td>
               {% for column in columns %}
                 {% if column == highlight_column %}
-                  <td>
+                  <td width="35%">
                     <a href="/{{ row_link|concat:row.pk }}">
                         {{ row|get_item:column }}
                     </a>

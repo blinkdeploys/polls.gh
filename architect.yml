@@ -4,16 +4,27 @@ parameters:
     default: warning-override-for-production
   postgres_password:
     default: warning-override-for-production
-
+secrets:
+  SECRET_KEY:
+    required: true
+  POSTGRES_DB:
+    required: true
+  POSTGRES_USER:
+    required: true
+  POSTGRES_PASSWORD:
+    required: true
+  POSTGRES_PORT:
+    required: true
+  
 services:
   db:
     image: postgres
     interfaces:
-      main: 5432
+      main: ${{ secrets.POSTGRES_PORT }}
     environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres # ${{ parameters.postgres_password }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }} # ${{ parameters.postgres_password }}
   api:
     build:
       context: .
@@ -21,19 +32,24 @@ services:
       sh -c '
         python manage.py collectstatic --noinput
         python manage.py migrate --noinput
-        uwsgi --http "0.0.0.0:8000" --module architectexample.wsgi:application --master --processes 4 --threads 2 --static-map /static=/code/static
+        uwsgi --http "0.0.0.0:8000" --module pollsgh.wsgi:application --master --processes 4 --threads 2 --static-map /static=/code/static
       '
     interfaces:
-      main: 8000
+      main:
+        port: 8000
+        ingress:
+          subdomain: app
     environment:
       DEBUG: 'False'
-      ALLOWED_HOST: '*' # .${{ ingresses.web.host }}
-      SECRET_KEY: ${{ parameters.django_secret_key }}
+      ALLOWED_HOST: '.${{ services.api.interfaces.main.ingress.host }}' # .${{ ingresses.web.host }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }} # ${{ parameters.django_secret_key }}
       POSTGRES_DB: ${{ services.db.environment.POSTGRES_DB }}
       POSTGRES_USER: ${{ services.db.environment.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ services.db.environment.POSTGRES_PASSWORD }}
       POSTGRES_HOST: ${{ services.db.interfaces.main.host }}
       POSTGRES_PORT: ${{ services.db.interfaces.main.port }}
+      FRONTEND_INTERNAL: ${{ services.api.interfaces.main.url }}
+      FRONTEND_EXTERNAL: ${{ services.api.interfaces.main.ingress.url }}
     debug:
       command: |
         sh -c '

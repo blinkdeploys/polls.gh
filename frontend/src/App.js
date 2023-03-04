@@ -60,7 +60,7 @@ const  BaseLayout  = () => (
           </li>
 
           <li className="nav-item">
-            <a className="nav-link" href="/result_approvals">Polls Approvals</a>
+            <a className="nav-link" href="/result_approvals">Poll Approvals</a>
           </li>
 
           <li className="nav-item dropdown">

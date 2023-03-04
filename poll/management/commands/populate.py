@@ -52,7 +52,7 @@ def get_model(name, row, count=0):
 
         constituency = row.get('constituency_id', None)
 
-        print("*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*")
+        # print("*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*")
         print(constituency)
         if constituency is None:
             return False, None
@@ -114,7 +114,7 @@ def get_model(name, row, count=0):
         for i in range(0, NATIONAL_COUNT):
             zone = nation
             # title = f'The President {nation.title}' if i == 1 else f'Vice-President {nation.title}'
-            title = f'The President / Vice President {nation.title}'
+            title = f'The President {nation.title}'
             model = Position(
                     title=title,
                     details=faker.sentence(),
@@ -145,7 +145,9 @@ def get_model(name, row, count=0):
         return (True, None)
 
     if name == "result":
-        MAX_VOTES = 54
+        MAX_VOTES = 14
+        MAX_STATION = 5
+        VOTE_OR_NOT_MAX = 3
         model = Result
         # delete all results
         Result.objects.all().delete()
@@ -156,10 +158,10 @@ def get_model(name, row, count=0):
         candidates = Candidate.objects.all()
         for candidate in candidates:
             count = 0
-            if random.randint(0, 10) == 1:
+            if random.randint(0, MAX_STATION) == 1:
                 for station in stations:
                     total_votes = 0
-                    if random.randint(0, 10) == 1:
+                    if random.randint(0, VOTE_OR_NOT_MAX) == 1:
                         total_votes = random.randint(0, MAX_VOTES)
                         result = Result(
                             candidate=candidate,

@@ -8,7 +8,7 @@ def index_view(request):
                 {
                     'title': 'Collate Results',
                     'details': 'Enter election results from polling stations.',
-                    'url': '/poll/results/',
+                    'url': 'poll/result/stations/', #'/poll/results/',
                 },
                 {
                     'title': 'Approve Results',

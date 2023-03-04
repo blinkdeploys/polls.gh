@@ -9,4 +9,4 @@ class CandidateSerializer(serializers.ModelSerializer):
     position = PositionSerializer()
     class Meta:
         model = Candidate
-        fields = ('pk', 'full_name', 'description', 'party', 'position', 'status', 'created_at')
+        fields = ('pk', 'full_name', 'description', 'votes', 'party', 'position', 'status', 'created_at')

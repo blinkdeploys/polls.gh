@@ -2,11 +2,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse, HttpResponseRedirect
-from poll.models import Result
-from people.models import Party
-from poll.serializers import ResultSerializer
+from geo.models import Station, Nation, Constituency
+from poll.models import Result, Position
+from people.models import Party, Candidate
+from poll.serializers import ResultSerializer, PositionSerializer
+from geo.serializers import StationSerializer
+from people.serializers import PartySerializer, CandidateSerializer
+from django.contrib.contenttypes.models import ContentType
 from poll.forms import ResultForm
 from poll.constants import ROWS_PER_PAGE
+from django.db.models import Prefetch
+from poll.constants import StatusChoices
 
 
 def result_list(request):
@@ -16,7 +22,8 @@ def result_list(request):
     total_per_page = ROWS_PER_PAGE
     
     result = Result.objects.all()
-    party = Party.objects.all()
+    # stations = Station.objects.all()
+    # candidates = Candidate.objects.all()
 
     page = request.GET.get('page', 1)
     paginator = Paginator(result, total_per_page)
@@ -33,16 +40,279 @@ def result_list(request):
     if data.has_previous():
         previousPage = data.previous_page_number()
 
+
     context = {
         'title': 'Results',
         'data': serializer.data,
-        'count': paginator.count,
-        'numpages' : paginator.num_pages,
-        'columns': ['candidate_details', 'station.title', 'total_votes', 'constituency_agent', 'result_sheet'],
-        'next_link': '/poll/results/?page=' + str(nextPage),
-        'prev_link': '/poll/results/?page=' + str(previousPage)
+        # 'candidates': candidates.data,
+        # 'count': paginator.count,
+        # 'numpages' : paginator.num_pages,
+        # 'columns': ['candidate_details', 'station.title', 'total_votes', 'constituency_agent', 'result_sheet'],
+        # 'next_link': '/poll/results/?page=' + str(nextPage),
+        # 'prev_link': '/poll/results/?page=' + str(previousPage)
     }
-    return render(request, "poll/result_list.html", context)
+    template = "poll/result_list.html"
+    return render(request, template, context)
+
+def station_list(request):
+    data = []
+    station_next_page = 1
+    station_previous_page = 1
+    total_per_page = ROWS_PER_PAGE
+    q = request.GET.get('q', '')
+    station_page = request.GET.get('spage', 1)
+    base_url = '/poll/result/stations?'
+    if len(q) > 0:
+        base_url = f'{base_url}q={q}'
+    
+    # result = Result.objects.first()
+    stations = Station.objects \
+                      .filter(title__icontains=q) \
+                      .all()
+    # candidates = Candidate.objects.all()
+
+    # paginator = Paginator(result, total_per_page)
+    # try:
+    #     data = paginator.page(page)
+    # except PageNotAnInteger:
+    #     data = paginator.page(1)
+    # except EmptyPage:
+    #     data = paginator.page(paginator.num_pages)
+
+    # serializer = ResultSerializer(data, context={'request': request}, many=True)
+    # if data.has_next():
+    #     nextPage = data.next_page_number()
+    # if data.has_previous():
+    #     previousPage = data.previous_page_number()
+
+    station_page = request.GET.get('spage', 1)
+    station_paginator = Paginator(stations, total_per_page)
+    try:
+        station_data = station_paginator.page(station_page)
+    except PageNotAnInteger:
+        station_data = station_paginator.page(1)
+    except EmptyPage:
+        station_data = station_paginator.page(station_paginator.num_pages)
+
+    station_serializer = StationSerializer(station_data, context={'request': request}, many=True)
+
+    if station_data.has_next():
+        station_next_page = station_data.next_page_number()
+    if station_data.has_previous():
+        station_previous_page = station_data.previous_page_number()
+
+
+    context = {
+        'title': 'Results',
+        # 'data': serializer.data,
+        'stations': station_serializer.data,
+        'q': q,
+        # 'candidates': candidates.data,
+        # 'columns': ['candidate_details', 'station.title', 'total_votes', 'constituency_agent', 'result_sheet'],
+        'station_numpages' : station_paginator.num_pages,
+        'station_count': station_paginator.count,
+        'station_next_link': f'{base_url}&spage=' + str(station_next_page),
+        'station_prev_link': f'{base_url}&spage=' + str(station_previous_page)
+    }
+    template = "poll/result_list.html"
+    return render(request, template, context)
+
+def position_list(request, spk=None):
+    data = []
+    nextPage = 1
+    previousPage = 1
+    total_per_page = ROWS_PER_PAGE
+    
+    nation = Nation.objects.first()
+    stations = Station.objects.filter(pk=spk)
+
+    constituency = stations.first().constituency
+
+    positions = Position.objects.filter(
+        zone_ct__in=[ContentType.objects.get_for_model(Nation), 
+                     ContentType.objects.get_for_model(Constituency)],
+        zone_id__in=[nation.pk, constituency.pk]
+    )
+    presidential_positions = Position.objects.filter(
+        zone_ct=ContentType.objects.get_for_model(Nation),
+        zone_id=nation.pk
+    )
+    parliamentary_positions = Position.objects.filter(
+        zone_ct=ContentType.objects.get_for_model(Constituency),
+        zone_id=constituency.pk
+    )
+    position_ids = [p.pk for p in presidential_positions] + [p.pk for p in parliamentary_positions]
+    positions = Position.objects.filter(
+        pk__in=position_ids
+    )
+
+    station_page = request.GET.get('spage', 1)
+    station_paginator = Paginator(stations, total_per_page)
+    try:
+        station_data = station_paginator.page(station_page)
+    except PageNotAnInteger:
+        station_data = station_paginator.page(1)
+    except EmptyPage:
+        station_data = station_paginator.page(station_paginator.num_pages)
+    station_serializer = StationSerializer(station_data, context={'request': request}, many=True)
+
+    position_page = request.GET.get('spage', 1)
+    position_paginator = Paginator(positions, total_per_page)
+    try:
+        position_data = position_paginator.page(position_page)
+    except PageNotAnInteger:
+        position_data = position_paginator.page(1)
+    except EmptyPage:
+        position_data = position_paginator.page(position_paginator.num_pages)
+    position_serializer = PositionSerializer(position_data, context={'request': request}, many=True)
+
+    context = {
+        'title': 'Results',
+        # 'data': serializer.data,
+        'stations': station_serializer.data,
+        'positions': position_serializer.data,
+        # 'candidates': candidates.data,
+        # 'count': paginator.count,
+        # 'numpages' : paginator.num_pages,
+        # 'columns': ['candidate_details', 'station.title', 'total_votes', 'constituency_agent', 'result_sheet'],
+        # 'next_link': '/poll/results/?page=' + str(nextPage),
+        # 'prev_link': '/poll/results/?page=' + str(previousPage)
+    }
+    template = "poll/result_list.html"
+    return render(request, template, context)
+
+def candidate_list(request, spk=None, ppk=None):
+    template = "poll/result_list.html"
+    data = []
+    nextPage = 1
+    previousPage = 1
+    total_per_page = ROWS_PER_PAGE
+    
+    nation = Nation.objects.first()
+    stations = Station.objects.filter(pk=spk)
+
+    constituency = stations.first().constituency
+
+    presidential_positions = Position.objects.filter(
+        zone_ct=ContentType.objects.get_for_model(Nation),
+        zone_id=nation.pk,
+        pk=ppk
+    )
+    parliamentary_positions = Position.objects.filter(
+        zone_ct=ContentType.objects.get_for_model(Constituency),
+        zone_id=constituency.pk,
+        pk=ppk
+    )
+    position_ids = [p.pk for p in presidential_positions] + [p.pk for p in parliamentary_positions]
+    positions = Position.objects.filter(
+        pk__in=position_ids
+    )
+
+    candidates = Candidate.objects \
+                          .filter(position_id__in=[p.pk for p in positions]) \
+                          .prefetch_related(
+                                Prefetch(
+                                    'results',
+                                    queryset=Result.objects.filter(station_id=spk),
+                                    to_attr="station_results"
+                                )
+                          )
+
+    # results = Result.objects.filter(
+    #     candidate__in=candidates,
+    #     station__in=stations
+    # )
+
+    station_page = request.GET.get('spage', 1)
+    station_paginator = Paginator(stations, total_per_page)
+    try:
+        station_data = station_paginator.page(station_page)
+    except PageNotAnInteger:
+        station_data = station_paginator.page(1)
+    except EmptyPage:
+        station_data = station_paginator.page(station_paginator.num_pages)
+    station_serializer = StationSerializer(station_data, context={'request': request}, many=True)
+
+    position_page = request.GET.get('spage', 1)
+    position_paginator = Paginator(positions, total_per_page)
+    try:
+        position_data = position_paginator.page(position_page)
+    except PageNotAnInteger:
+        position_data = position_paginator.page(1)
+    except EmptyPage:
+        position_data = position_paginator.page(station_paginator.num_pages)
+    position_serializer = PositionSerializer(position_data, context={'request': request}, many=True)
+
+    candidate_page = request.GET.get('spage', 1)
+    candidate_paginator = Paginator(candidates, total_per_page)
+    try:
+        candidate_data = candidate_paginator.page(candidate_page)
+    except PageNotAnInteger:
+        candidate_data = candidate_paginator.page(1)
+    except EmptyPage:
+        candidate_data = candidate_paginator.page(candidate_paginator.num_pages)
+    candidate_serializer = CandidateSerializer(candidate_data, context={'request': request}, many=True)
+
+    # result_page = request.GET.get('spage', 1)
+    # result_paginator = Paginator(results, total_per_page)
+    # try:
+    #     result_data = result_paginator.page(result_page)
+    # except PageNotAnInteger:
+    #     result_data = result_paginator.page(1)
+    # except EmptyPage:
+    #     result_data = result_paginator.page(result_paginator.num_pages)
+    # result_serializer = ResultSerializer(result_data, context={'request': request}, many=True)
+
+    context = {
+        'title': 'Results',
+        # 'data': serializer.data,
+        # 'results': result_serializer.data,
+        'stations': station_serializer.data,
+        'positions': position_serializer.data,
+        'candidates': candidate_data, # candidate_serializer.data,
+        # 'count': paginator.count,
+        # 'numpages' : paginator.num_pages,
+        # 'columns': ['candidate_details', 'station.title', 'total_votes', 'constituency_agent', 'result_sheet'],
+        # 'next_link': '/poll/results/?page=' + str(nextPage),
+        # 'prev_link': '/poll/results/?page=' + str(previousPage)
+    }
+    if request.method == 'GET':
+        return render(request, template, context)
+    else:
+        print("*********************************")
+        from pprint import pprint
+        pprint(request.POST.__dict__)
+        pprint(request.POST.getlist('total_votes'))
+        pprint(request.POST.getlist('candidate'))
+        pprint(request.POST.get('station', 0))
+        print("*********************************")
+        station = request.POST.get('station', 0)
+        candidates = request.POST.getlist('candidate', 0)
+        total_votes = request.POST.getlist('total_votes', 0)
+        n = len(candidates)
+        for i in range(0, n):
+            try:
+                model = Result(
+                    station_id=int(station),
+                    candidate_id=int(candidates[i]),
+                    total_votes=int(total_votes[i]),
+                    result_sheet=None,
+                    constituency_agent=None,
+                    status=StatusChoices.ACTIVE
+                )
+                print(model.__dict__)
+                model.full_clean()
+                model.save()
+            except Exception as e:
+                print(e)
+                context = {
+                    'error': 'There was an error saving the result. Please try again.'
+                }
+        context = {
+            'message': 'Result was successfully saved'
+        }
+        return render(request, template, context)
+
 
 
 def result_detail(request, pk=None):

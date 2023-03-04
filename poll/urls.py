@@ -17,9 +17,14 @@ urlpatterns = [
     url(r'^positions/$', poll_views.position_list, name="position_list"),
     url(r'^position/$', poll_views.position_detail, name="position_detail"),
     url(r'^position/(?P<pk>[0-9]+)$', poll_views.position_detail, name="position_detail"),
-    url(r'^results/$', poll_views.result_list, name="result_list"),
+
     url(r'^result/$', poll_views.result_detail, name="result_detail"),
     url(r'^result/(?P<pk>[0-9]+)$', poll_views.result_detail, name="result_detail"),
+    url(r'^results/$', poll_views.result_list, name="result_list"),
+    url(r'^result/stations/$', poll_views.station_list, name="result_station_list"),
+    url(r'^result/station/(?P<spk>[0-9]+)$', poll_views.position_list, name="result_position_list"),
+    url(r'^result/station/(?P<spk>[0-9]+)/position/(?P<ppk>[0-9]+)$', poll_views.candidate_list, name="result_candidate_list"),
+
     url(r'^result_approvals/$', poll_views.result_approval_list, name="result_approval_list"),
     url(r'^result_approval/$', poll_views.result_approval_detail, name="result_approval_detail"),
     url(r'^result_approval/(?P<pk>[0-9]+)$', poll_views.result_approval_detail, name="result_approval_detail"),

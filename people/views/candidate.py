@@ -13,7 +13,7 @@ def candidate_list(request):
     nextPage = 1
     previousPage = 1
     total_per_page = ROWS_PER_PAGE
-    candidate = Candidate.objects.all()
+    candidate = sorted(Candidate.objects.all(), key=lambda t: t.votes, reverse=True)
     page = request.GET.get('page', 1)
     paginator = Paginator(candidate, total_per_page)
     try:
@@ -34,7 +34,7 @@ def candidate_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': ['full_name', 'party.code', 'position.title'],
+        'columns': ['full_name', 'party.code', 'votes', 'position.title'],
         'next_link': '/people/candidates/?page=' + str(nextPage),
         'prev_link': '/people/candidates/?page=' + str(previousPage)
     }
