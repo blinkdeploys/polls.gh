@@ -2,7 +2,7 @@
     "name": "party",
     "data": [
         {"id": 1, "code": "I", "title": "Independent"},
-        {"id": 2, "code": "NDP", "title": "National Democratic Congress"},
+        {"id": 2, "code": "NDC", "title": "National Democratic Congress"},
         {"id": 3, "code": "NPP", "title": "New Patriotic Party"},
         {"id": 4, "code": "GUM", "title": "Ghana Union Movement"},
         {"id": 5, "code": "APC", "title": "All People's Congress"},

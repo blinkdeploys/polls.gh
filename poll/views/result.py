@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.mail import send_mail, BadHeaderError
@@ -13,7 +14,7 @@ from poll.forms import ResultForm
 from poll.constants import ROWS_PER_PAGE
 from django.db.models import Q, Prefetch
 from poll.constants import StatusChoices
-
+from django.contrib import messages
 
 
 def result_list(request):
@@ -48,7 +49,7 @@ def result_list(request):
         # 'candidates': candidates.data,
         # 'count': paginator.count,
         # 'numpages' : paginator.num_pages,
-        # 'columns': ['candidate_details', 'station.title', 'total_votes', 'constituency_agent', 'result_sheet'],
+        # 'columns': ['candidate_details', 'station.title', 'votes', 'constituency_agent', 'result_sheet'],
         # 'next_link': '/poll/results/?page=' + str(nextPage),
         # 'prev_link': '/poll/results/?page=' + str(previousPage)
     }
@@ -109,7 +110,7 @@ def station_list(request):
         'stations': station_serializer.data,
         'q': q,
         # 'candidates': candidates.data,
-        # 'columns': ['candidate_details', 'station.title', 'total_votes', 'constituency_agent', 'result_sheet'],
+        # 'columns': ['candidate_details', 'station.title', 'votes', 'constituency_agent', 'result_sheet'],
         'station_numpages' : station_paginator.num_pages,
         'station_count': station_paginator.count,
         'station_next_link': f'{base_url}&spage=' + str(station_next_page),
@@ -175,7 +176,7 @@ def position_list(request, spk=None):
         # 'candidates': candidates.data,
         # 'count': paginator.count,
         # 'numpages' : paginator.num_pages,
-        # 'columns': ['candidate_details', 'station.title', 'total_votes', 'constituency_agent', 'result_sheet'],
+        # 'columns': ['candidate_details', 'station.title', 'votes', 'constituency_agent', 'result_sheet'],
         # 'next_link': '/poll/results/?page=' + str(nextPage),
         # 'prev_link': '/poll/results/?page=' + str(previousPage)
     }
@@ -183,6 +184,7 @@ def position_list(request, spk=None):
     return render(request, template, context)
 
 def candidate_list(request, spk=None, ppk=None):
+    messages.get_messages(request)
     template = "poll/result_list.html"
     data = []
     nextPage = 1
@@ -271,50 +273,51 @@ def candidate_list(request, spk=None, ppk=None):
         'stations': station_serializer.data,
         'positions': position_serializer.data,
         'candidates': candidate_data, # candidate_serializer.data,
+        'spk': spk,
+        'ppk': ppk,
         # 'count': paginator.count,
         # 'numpages' : paginator.num_pages,
-        # 'columns': ['candidate_details', 'station.title', 'total_votes', 'constituency_agent', 'result_sheet'],
+        # 'columns': ['candidate_details', 'station.title', 'votes', 'constituency_agent', 'result_sheet'],
         # 'next_link': '/poll/results/?page=' + str(nextPage),
         # 'prev_link': '/poll/results/?page=' + str(previousPage)
     }
-    if request.method == 'GET':
-        return render(request, template, context)
-    else:
+    if request.method == 'POST':
         print("*********************************")
         from pprint import pprint
         pprint(request.POST.__dict__)
-        pprint(request.POST.getlist('total_votes'))
+        pprint(request.POST.getlist('votes'))
         pprint(request.POST.getlist('candidate'))
         pprint(request.POST.get('station', 0))
-        print("*********************************")
+
         station = request.POST.get('station', 0)
         candidates = request.POST.getlist('candidate', 0)
-        total_votes = request.POST.getlist('total_votes', 0)
+        votes = request.POST.getlist('votes', 0)
         n = len(candidates)
         for i in range(0, n):
             try:
-                model = Result(
+                model = Result.objects.update_or_create(
                     station_id=int(station),
                     candidate_id=int(candidates[i]),
-                    total_votes=int(total_votes[i]),
-                    result_sheet=None,
-                    constituency_agent=None,
-                    status=StatusChoices.ACTIVE
+                    defaults=dict(
+                        votes=int(votes[i]),
+                        result_sheet=None,
+                        constituency_agent=None,
+                        status=StatusChoices.ACTIVE
+                    )
                 )
-                print(model.__dict__)
-                model.full_clean()
-                model.save()
             except Exception as e:
                 print(e)
                 context = {
                     'error': 'There was an error saving the result. Please try again.'
                 }
+        print("*********************************")
+        message="Result sheet successfully saved"
         context = {
-            'message': 'Result was successfully saved'
+            'message': message
         }
-        return render(request, template, context)
-
-
+        messages.success(request, message)
+        return redirect(reverse('result_candidate_list', kwargs=dict(spk=spk, ppk=ppk)), "Result sheet successfully saved")
+    return render(request, template, context)
 
 def result_detail(request, pk=None):
     data = get_object_or_404(Result, pk=pk)
@@ -323,7 +326,7 @@ def result_detail(request, pk=None):
         'constituency_agent': data.constituency_agent,
         'candidate': data.candidate,
         'station': data.station,
-        'total_votes': data.total_votes,
+        'votes': data.votes,
         'result_sheet': data.result_sheet,
         'status': data.status,
     }

@@ -9,7 +9,7 @@ class ResultSerializer(serializers.ModelSerializer):
     station = StationSerializer()
     class Meta:
         model = Result
-        fields = ('pk', 'candidate_details', 'candidate', 'station', 'total_votes', 'result_sheet', 'constituency_agent')
+        fields = ('pk', 'candidate_details', 'candidate', 'station', 'votes', 'result_sheet', 'constituency_agent')
 
 
 

@@ -3,6 +3,51 @@ from django.utils.translation import gettext_lazy as _
 from poll.constants import GeoLevelChoices, StatusChoices
 
 
+class ResultSheet(models.Model):
+    total_votes = models.IntegerField(_("Total number of votes"), help_text=_("Total number of votes"), null=True, blank=True)
+    total_valid_votes = models.IntegerField(_("Total number of valid votes"), help_text=_("Total number of valid votes"), null=True, blank=True)
+    total_invalid_votes = models.IntegerField(_("Total number of invalid votes"), help_text=_("Total number of invalid votes"), null=True, blank=True)
+    result_sheet = models.FileField(upload_to='results%Y%m%d',
+                                    help_text=_("Statement of poll and declaration of results"),
+                                    default=None, null=True, blank=True)
+    station_agent = models.ForeignKey(
+                             "account.User",
+                             on_delete=models.CASCADE,
+                             help_text=_("Constituency agent that recorded results"),
+                             related_name='station_result_sheets',
+                             default=None, null=True, blank=True)
+    station_approval_at = models.DateTimeField("Date of Stational Approved At", default=None, null=True, blank=True)
+    constituency_agent = models.ForeignKey(
+                             "account.User",
+                             on_delete=models.CASCADE,
+                             help_text=_("Constituency agent that recorded results"),
+                             related_name='constituency_result_sheets',
+                             default=None, null=True, blank=True)
+    constituency_approved_at = models.DateTimeField("Constituency Approved At", default=None, null=True, blank=True)
+    region_agent = models.ForeignKey(
+                             "account.User",
+                             on_delete=models.CASCADE,
+                             help_text=_("Regional agent that recorded results"),
+                             related_name='regional_result_sheets',
+                             default=None, null=True, blank=True)
+    regional_approval_at = models.DateTimeField("Date of Regional Approved At", default=None, null=True, blank=True)
+    nation_agent = models.ForeignKey(
+                             "account.User",
+                             on_delete=models.CASCADE,
+                             help_text=_("National agent that recorded results"),
+                             related_name='national_result_sheets',
+                             default=None, null=True, blank=True)
+    national_approval_at = models.DateTimeField("Date of Regional Approved At", default=None, null=True, blank=True)
+    created_at = models.DateTimeField("Created At", auto_now_add=True)
+    status = models.CharField(max_length=35, choices=StatusChoices.choices, default=StatusChoices.ACTIVE, blank=True, null=True)
+
+    class Meta:
+        db_table = 'poll_result_sheet'
+
+    def clean(self):
+      self.total_votes = self.total_valid_votes + self.total_invalid_votes
+
+
 class Result(models.Model):
     '''
     Collates the total number of votes for each party for each office in each constituency. List of fields as follows:
@@ -27,16 +72,19 @@ class Result(models.Model):
                                  default=None, null=True, blank=True,
                                  related_name='results')
     # total number of votes at station
-    total_votes = models.IntegerField(_("Total number of votes"), help_text=_("Total number of votes"))
+    votes = models.IntegerField(_("Total number of votes"), help_text=_("Total number of votes"))
     # verification sheet
-    result_sheet = models.FileField(upload_to='results/%Y/%m/%d',
+    result_sheet = models.ForeignKey(
+                                    "ResultSheet",
+                                    on_delete=models.CASCADE,
                                     help_text=_("Result verification sheet"),
-                                    default=None, null=True, blank=True)
+                                    related_name='results',
+                                    default=None,  null=True, blank=True)
     # party agent responsible
-    constituency_agent = models.ForeignKey(
+    station_agent = models.ForeignKey(
                              "account.User",
                              on_delete=models.CASCADE,
-                             help_text=_("Constituency agent that recorded"),
+                             help_text=_("Station agent that recorded the result"),
                              related_name='results',
                              default=None, null=True, blank=True)
     status = models.CharField(max_length=35, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)
@@ -74,7 +122,7 @@ class ResultApproval(models.Model):
         db_table = 'poll_result_approval'
 
     def __str__(self):
-        return "{} {} {}".format(self.result.position, self.result.station, self.result.total_votes)
+        return "{} {} {}".format(self.result.position, self.result.station, self.result.votes)
 
     '''
     # limit data entry only to agents with higher levels than constituency

@@ -38,7 +38,7 @@ class ResultForm(forms.Form):
                                         'placeholder': 'select party'
                                       }),
                                       required=True)
-    total_votes = forms.CharField(label=_('Total Votes'), required=True)
+    votes = forms.CharField(label=_('Total Votes'), required=True)
     constituency_agent = forms.CharField(label=_('Agent'), required=True)
     details = forms.CharField(widget=forms.Textarea(attrs={
                                                            'class':'form-control',
@@ -59,7 +59,7 @@ class ResultForm(forms.Form):
         text_attrs["placeholder"] = "select constituency agent"
         self.fields['constituency_agent'].widget=forms.TextInput(attrs=text_attrs)
         text_attrs["placeholder"] = "enter number of votes"
-        self.fields['total_votes'].widget=forms.TextInput(attrs=text_attrs)
+        self.fields['votes'].widget=forms.TextInput(attrs=text_attrs)
         text_attrs["placeholder"] = "enter details"
         self.fields['details'].widget=forms.TextInput(attrs=text_attrs)
 

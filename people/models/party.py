@@ -20,13 +20,13 @@ class Party(models.Model):
 	def __str__(self):
 		return self.title
 
-	def votes(self):
-		total_votes = 0
+	def result_votes(self):
+		votes = 0
 		candidates = self.candidates.all()
 		for candidate in candidates:
 			for result in candidate.results.all():
-				total_votes = total_votes + int(result.total_votes)
-		return total_votes
+				votes = votes + int(result.votes)
+		return votes
 
 	def total_candidates(self):
 		return self.candidates.all().count()

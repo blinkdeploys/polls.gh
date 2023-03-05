@@ -53,7 +53,7 @@ def get_model(name, row, count=0):
         constituency = row.get('constituency_id', None)
 
         # print("*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*")
-        print(constituency)
+        # print(constituency)
         if constituency is None:
             return False, None
         else:
@@ -160,13 +160,13 @@ def get_model(name, row, count=0):
             count = 0
             if random.randint(0, MAX_STATION) == 1:
                 for station in stations:
-                    total_votes = 0
+                    votes = 0
                     if random.randint(0, VOTE_OR_NOT_MAX) == 1:
-                        total_votes = random.randint(0, MAX_VOTES)
+                        votes = random.randint(0, MAX_VOTES)
                         result = Result(
                             candidate=candidate,
                             station=station,
-                            total_votes=total_votes,
+                            votes=votes,
                             constituency_agent_id=None,
                             result_sheet=None)
                         result.full_clean()
@@ -222,10 +222,38 @@ def get_model(name, row, count=0):
         model = Candidate
         # ensure that there are at least one candidate for each position for each party
         parties = Party.objects.all()
-        positions = Position.objects.all()
         print("Deleting all candidate records (y/n)?")
         Candidate.objects.all().delete()
+
         total = 0
+
+        positions = Position.objects.filter(zone_ct__in=[ContentType.objects.get_for_model(Nation)]).all()
+        for party in parties:
+            count = 0
+            for position in positions:
+                ismof = random.randint(0, 1)
+                prefix = faker.prefix_male()
+                first_name = faker.first_name_male()
+                if ismof == 0:
+                    prefix = faker.prefix_female()
+                    first_name = faker.first_name_female()
+                model = Candidate(
+                            prefix=prefix,
+                            first_name=first_name,
+                            last_name=faker.last_name(),
+                            other_names=faker.first_name(),
+                            description=faker.sentence(),
+                    party=party,
+                    position=position,
+                    status=StatusChoices.ACTIVE
+                )
+                model.full_clean()
+                model.save()
+                count = count + 1
+                total = total + count
+            print(f'{count} {party.title} Presidential Candidates created successfully.')
+
+        positions = Position.objects.filter(zone_ct__in=[ContentType.objects.get_for_model(Constituency)]).all()
         for party in parties:
             count = 0
             for position in positions:
@@ -251,7 +279,8 @@ def get_model(name, row, count=0):
                     count = count + 1
                     total = total + count
             print(f'{count} {party.title} Candidates created successfully.')
-        print(f'{total} Candidates created successfully.')
+        print(f'{total} Parliamentary Candidates created successfully.')
+
         return (False, None)
 
     if name == "party":
