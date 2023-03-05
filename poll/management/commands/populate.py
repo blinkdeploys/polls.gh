@@ -167,7 +167,7 @@ def get_model(name, row, count=0):
                             candidate=candidate,
                             station=station,
                             votes=votes,
-                            constituency_agent_id=None,
+                            station_agent_id=None,
                             result_sheet=None)
                         result.full_clean()
                         result.save()
