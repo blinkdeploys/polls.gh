@@ -11,7 +11,7 @@ from poll.constants import ROWS_PER_PAGE
 
 
 @api_view(['GET', 'POST'])
-def agent_list(request):
+def event_list(request):
     """
     List agent or create a new agent
     """
@@ -52,7 +52,7 @@ def agent_list(request):
 
 
 @api_view(['GET', 'PUT', 'POST'])
-def agent_detail(request, pk):
+def event_detail(request, pk):
     """
     Retrieve, update or delete a custumer by id/pk
     """

@@ -360,19 +360,33 @@ def get_model(name, row, count=0):
         model.set_password(password)
         model.save()
         return True, None
+    '''
 
     if name == "agent":
         model = Agent
-        if model.objects.count() <= 80:
-            return (exists, model(
-                        first_name=faker.first_name(),
-                        last_name=faker.last_name(),
-                        email=faker.email(),
-                        phone=faker.phone(),
-                        address=faker.sentence(),
-                        description=faker.sentence(),
-                        status_id=1))
-    '''
+    	
+        zone_models = [Nation, Region, Constituency, Station]
+
+        for zone_model in zone_models:
+            zones = zone_model.objects.all()
+            zone_ct = ContentType.objects.get_for_model(zone_model)
+            for zone in zones:
+                defaults = dict(
+                                first_name=faker.first_name(),
+                                last_name=faker.last_name(),
+                                email=faker.email(),
+                                phone=faker.phone_number(),
+                                address=faker.sentence(),
+                                description=faker.sentence(),
+                                status=StatusChoices.ACTIVE
+                )
+                print(defaults.get('first_name', ''), defaults.get('last_name', ''), defaults.get('email', ''))
+                model = Agent.objects.update_or_create(
+                        zone_ct=zone_ct,
+                        zone_id=zone.pk,
+                        defaults=defaults)
+        return True, None
+
 
     return False, None
 

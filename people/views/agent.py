@@ -34,7 +34,10 @@ def agent_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': [{'title': 'first_name'}, {'title': 'last_name'}, {'title': 'email'}, {'title': 'phone'}, {'title': 'status'}],
+        'columns': [
+            {'title': 'full_name', 'width': 30},
+            {'title': 'zone_title&zone_type', 'width': 25},
+            {'title': 'phone', 'width': 15},],
         'next_link': '/people/agents/?page=' + str(nextPage),
         'prev_link': '/people/agents/?page=' + str(previousPage)
     }
@@ -46,7 +49,10 @@ def agent_detail(request, pk=None):
     initial = {
         'pk': data.pk,
         'code': data.code,
-        'title': data.title,
+        'first_name': data.first_name,
+        'last_name': data.last_name,
+        'email': data.email,
+        'phone': data.phone,
         'status': data.status,
     }
     if request.method == "GET":

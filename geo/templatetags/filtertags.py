@@ -16,14 +16,24 @@ def get_item(dictionary, key):
         return ''
     if key is None:
         return dictionary
-    keys = key.split('.')
-    item = dictionary
-    for k in keys:
-        # if type(item) is not 'object':
-        #     return item
-        if type(item) not in [str, int]:
-            item = item.get(k, '')
-    return item
+    base = dictionary
+    all_items = ''
+    print(dictionary, key)
+    print(':::::::::::::::::::::::::::::')
+    paths = key.split('&')
+    for path in paths:
+        keys = path.split('.')
+        item = base
+        for k in keys:
+            # if type(item) is not 'object':
+            #     return item
+            if type(item) not in [str, int]:
+                item = item.get(k, '')
+        if type(item) is str:
+            if len(all_items) > 0:
+                all_items += ' '
+            all_items = all_items + item
+    return all_items
 
 
 @register.filter
