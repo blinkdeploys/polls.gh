@@ -36,7 +36,7 @@ def result_approval_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': ['result', 'approved_at', 'approving_agent.name', 'result.title'],
+        'columns': [{'title': 'result'}, {'title': 'approved_at'}, {'title': 'approving_agent.name'}, {'title': 'result.title'}],
         'next_link': '/poll/result_approvals/?page=' + str(nextPage),
         'prev_link': '/poll/result_approvals/?page=' + str(previousPage)
     }

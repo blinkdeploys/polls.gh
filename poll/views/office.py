@@ -34,7 +34,7 @@ def office_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': ['title', 'office_title'],
+        'columns': [{'title': 'title'}, {'title': 'office_title'}],
         'next_link': '/poll/offices/?page=' + str(nextPage),
         'prev_link': '/poll/offices/?page=' + str(previousPage)
     }

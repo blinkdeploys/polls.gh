@@ -34,7 +34,7 @@ def station_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': ['code', 'title', 'constituency.title'],
+        'columns': [{'title': 'code'}, {'title': 'title'}, {'title': 'constituency.title'}],
         'next_link': '/geo/stations/?page=' + str(nextPage),
         'prev_link': '/geo/stations/?page=' + str(previousPage)
     }

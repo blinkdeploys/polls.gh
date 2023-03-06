@@ -14,12 +14,15 @@ def concat(arg1, arg2):
 def get_item(dictionary, key):
     if dictionary is None:
         return ''
+    if key is None:
+        return dictionary
     keys = key.split('.')
     item = dictionary
     for k in keys:
         # if type(item) is not 'object':
         #     return item
-        item = item.get(k, '')
+        if type(item) not in [str, int]:
+            item = item.get(k, '')
     return item
 
 

@@ -2,6 +2,11 @@ from rest_framework import serializers
 from people.models import Party
 
 
+class PartyAsChildSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Party
+        fields = ('pk', 'code', 'title', 'agent', 'status')
+
 class PartySerializer(serializers.ModelSerializer):
     # result_votes = serializers.SerializerMethodField()
     # candidates = serializers.SerializerMethodField()

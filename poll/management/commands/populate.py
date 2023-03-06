@@ -429,7 +429,7 @@ class Command(BaseCommand):
                                         if model is not None:
                                             model.full_clean()
                                             model.save()
-                                            self.stdout.write(self.style.SUCCESS(f'Data imported successfully'))
+                                            # self.stdout.write(self.style.SUCCESS(f'Data imported successfully'))
                                             imported = imported + 1
                                             if data["name"] not in seeded:
                                                 seeded.append(data["name"])

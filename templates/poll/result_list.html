@@ -49,7 +49,9 @@
                         </div>
                     </td>
                     <td colspan="2">
-                        <div align="right"></div>
+                        <div align="right">
+                            <input type="checkbox" name="has_results" />
+                        </div>
                     </td>
                 </tr>
 
@@ -64,9 +66,9 @@
                 </tr>
                 {% for position in positions %}
                 <tr>
-                    <td><a href="/poll/result/station/{{ station.pk }}/position/{{ position.pk }}">{{ position.title }}</a></td>
-                    <td>{{ position.candidates }}</td>
-                    <td>{{ position.votes }}</td>
+                    <td class="upper"><a href="/poll/result/station/{{ station.pk }}/position/{{ position.pk }}">{{ position.title }}</a></td>
+                    <td class="upper">{{ position.candidates }}</td>
+                    <td class="upper">{{ position.votes }}</td>
                 </tr>
 
                 <!--parties-->
@@ -143,7 +145,7 @@
                                                         />
                                                 {% endfor %}
                                             {% else %}
-                                                <input name="votes" value=""
+                                                <input name="votes" value="{% if candidate is not None %}0{% else %}{% endif %}"
                                                         class="form-control" type="number" min="0"
                                                         placeholder="enter count for candidate"
                                                         data-for="{{ candidate.party.code }}-votes-in-words"
@@ -160,20 +162,20 @@
                         </td>
                     </tr>
                     {% endfor %}
-                    <tr class="bold">
+                    <tr>
                         <td colspan="3">
                             <div class="row">
-                                <div class="col-1">
+                                <div class="col-1 bold">
                                     A
                                 </div>
-                                <div class="col-5">
+                                <div class="col-5 bold">
                                     Total Valid Votes
                                 </div>
                                 <div class="col-2">
-                                    <div id="total-votes-valid"></div>
+                                    <div id="total-votes-valid" class="bold"></div>
                                     <input type="hidden" id="total_valid_votes" name="total_valid_votes" value="{% if result_sheet %}{{ result_sheet.total_valid_votes }}{% else %}0{% endif %}" />
                                 </div>
-                                <div class="col-4" id="total-votes-in-words-valid">
+                                <div class="col-4 bold" id="total-votes-in-words-valid">
                                 </div>
                             </div>
                         </td>
@@ -181,13 +183,13 @@
                     <tr class="bold">
                         <td colspan="3">
                             <div class="row">
-                                <div class="col-1">
+                                <div class="col-1 bold">
                                     B
                                 </div>
-                                <div class="col-5">
+                                <div class="col-5 bold">
                                     Total Rejected Votes
                                 </div>
-                                <div class="col-2">
+                                <div class="col-2 bold">
                                     <input id="total-votes-invalid"
                                         name="total_invalid_votes"
                                         value="{% if result_sheet %}{{ result_sheet.total_invalid_votes }}{% else %}0{% endif %}"
@@ -197,7 +199,7 @@
                                         onblur="calculateTotalVotes()"
                                         />
                                 </div>
-                                <div class="col-4" id="total-votes-in-words-invalid">
+                                <div class="col-4 bold" id="total-votes-in-words-invalid">
                                 </div>
                             </div>
                         </td>
@@ -205,17 +207,17 @@
                     <tr class="bold">
                         <td colspan="3">
                             <div class="row">
-                                <div class="col-1">
+                                <div class="col-1 bold">
                                     C
                                 </div>
-                                <div class="col-5">
+                                <div class="col-5 bold">
                                     Total Votes in Ballot Box
                                 </div>
                                 <div class="col-2">
-                                    <div id="total-votes"></div>
+                                    <div id="total-votes" class="bold"></div>
                                     <input type="hidden" id="total_votes" name="total_votes" value="{% if result_sheet %}{{ result_sheet.total_votes }}{% else %}0{% endif %}" />
                                 </div>
-                                <div class="col-4" id="total-votes-in-words">
+                                <div class="col-4 bold" id="total-votes-in-words">
                                 </div>
                             </div>
                         </td>

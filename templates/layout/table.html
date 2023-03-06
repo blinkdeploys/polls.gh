@@ -19,7 +19,7 @@
           <tr>
             <th class="scope">ID</th>
             {% for column in columns %}
-              <th class="scope">{{ column|ucwords }}</th>
+              <th class="scope">{{ column.title|ucwords }}</th>
             {% endfor %}
             <th class="scope">Actions</th>
           </tr>
@@ -27,17 +27,17 @@
       <tbody>
           {% for row in data %}
             <tr scope="row">
-              <td><input type="checkbox" /></td>
+              <td width="5%"><input type="checkbox" /></td>
               {% for column in columns %}
-                {% if column == highlight_column %}
-                  <td width="35%">
+                {% if column.title == highlight_column %}
+                  <td>
                     <a href="/{{ row_link|concat:row.pk }}">
-                        {{ row|get_item:column }}
+                        {{ row|get_item:column.title }}
                     </a>
                   </td>
                 {% else %}
-                  <td>
-                    {{ row|get_item:column }}
+                  <td width="{% if column.width is not None %}{{ column.width }}{% else %}15{% endif %}%">
+                    {{ row|get_item:column.title }}
                   </td>
                 {% endif %}
               {% endfor %}

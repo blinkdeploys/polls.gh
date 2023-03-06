@@ -13,18 +13,18 @@ def candidate_list(request):
     nextPage = 1
     previousPage = 1
     total_per_page = ROWS_PER_PAGE
-    candidate = Candidate.objects.all()
+    candidates = Candidate.objects.all()
     # candidate = sorted(Candidate.objects.all(), key=lambda t: t.result_votes, reverse=True)
     page = request.GET.get('page', 1)
-    paginator = Paginator(candidate, total_per_page)
+    paginator = Paginator(candidates, total_per_page)
     try:
         data = paginator.page(page)
     except PageNotAnInteger:
         data = paginator.page(1)
     except EmptyPage:
         data = paginator.page(paginator.num_pages)
-
     serializer = CandidateSerializer(data, context={'request': request}, many=True)
+
     if data.has_next():
         nextPage = data.next_page_number()
     if data.has_previous():
@@ -32,10 +32,12 @@ def candidate_list(request):
     
     context = {
         'title': 'Candidates',
+        # 'data': serializer.data,
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': ['full_name', 'party.code', 'position.title'],
+        'columns': [{'title': 'party.code', 'width': 5}, {'title': 'full_name', 'width': 50}, {'title': 'position.title', 'width': 30}],
+        'column_widths': [5, None, 15],
         'next_link': '/people/candidates/?page=' + str(nextPage),
         'prev_link': '/people/candidates/?page=' + str(previousPage)
     }

@@ -40,6 +40,14 @@ class Position(models.Model):
         # e.g. Minister for the Volta Region
         return "{} {}".format(self.title, self.zone.title)
 
+    @property
+    def zone_type(self):
+        if self.zone_ct == ContentType.objects.get_for_model(Nation):
+            return 'National'
+        elif self.zone_ct == ContentType.objects.get_for_model(Constituency):
+            return 'Constituency'
+        return 'N/A'
+
     '''
     def clean(self):
         zone = None
@@ -65,44 +73,4 @@ class Position(models.Model):
                 raise ValidationError("Selected position's office does not exist. Please select a valid office")
         if zone is None:
             raise ValidationError("Selected position's zone is not valid.")
-
-    @property
-    def office_title(self):
-        try:
-            office = self.office
-            return office.title
-        except Office.DoesNotExist:
-            office = None
-        return ''
-
-    @property
-    def zone(self):
-        try:
-            office = self.office
-        except Office.DoesNotExist:
-            office = None
-        if office is None:
-            return None
-        if office.level == GeoLevelChoices.NATIONAL:
-            try:
-                return Nation.objects.get(id=self.zone.id)
-            except Region.DoesNotExist:
-                raise ValidationError("Selected nation does not exist")
-        elif office.level == GeoLevelChoices.REGION:
-            try:
-                return Region.objects.get(id=self.zone.id)
-            except Region.DoesNotExist:
-                raise ValidationError("Selected region does not exist")
-        elif office.level == GeoLevelChoices.CONSTITUENCY:
-            try:
-                return Constituency.objects.get(id=self.zone.id)
-            except Region.DoesNotExist:
-                raise ValidationError("Selected constituency does not exist")
-        elif office.level == GeoLevelChoices.STATION:
-            try:
-                return Station.objects.get(id=self.zone.id)
-            except Region.DoesNotExist:
-                raise ValidationError("Selected station does not exist")
-        else:
-            raise ValidationError("Invalid office value")
     '''

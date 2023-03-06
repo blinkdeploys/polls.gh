@@ -3,7 +3,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse, HttpResponseRedirect
 from people.models import Party
-from people.serializers import PartySerializer
+from people.serializers import PartySerializer, PartyAsChildSerializer
 from people.forms import PartyForm
 from poll.constants import ROWS_PER_PAGE
 
@@ -23,7 +23,7 @@ def party_list(request):
     except EmptyPage:
         data = paginator.page(paginator.num_pages)
 
-    serializer = PartySerializer(data, context={'request': request}, many=True)
+    serializer = PartyAsChildSerializer(data, context={'request': request}, many=True)
     if data.has_next():
         nextPage = data.next_page_number()
     if data.has_previous():
@@ -34,7 +34,7 @@ def party_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': ['code', 'title', 'total_candidates', 'votes', 'agent'],
+        'columns': [{'title': 'code', 'width': 5}, {'title': 'title', 'width': 60}, {'title': 'agent', 'width': 15}],
         'next_link': '/people/parties/?page=' + str(nextPage),
         'prev_link': '/people/parties/?page=' + str(previousPage)
     }

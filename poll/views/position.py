@@ -34,7 +34,7 @@ def position_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': ['title', 'office_title', 'position_zone'],
+        'columns': [{'title': 'zone'}, {'title': 'title'}],
         'next_link': '/poll/positions/?page=' + str(nextPage),
         'prev_link': '/poll/positions/?page=' + str(previousPage)
     }

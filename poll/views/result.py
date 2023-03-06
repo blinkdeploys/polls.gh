@@ -36,8 +36,8 @@ def result_list(request):
         data = paginator.page(1)
     except EmptyPage:
         data = paginator.page(paginator.num_pages)
-
     serializer = ResultSerializer(data, context={'request': request}, many=True)
+
     if data.has_next():
         nextPage = data.next_page_number()
     if data.has_previous():
@@ -57,7 +57,7 @@ def result_list(request):
     template = "poll/result_list.html"
     return render(request, template, context)
 
-def station_list(request):
+def result_station_list(request):
     data = []
     station_next_page = 1
     station_previous_page = 1
@@ -120,7 +120,7 @@ def station_list(request):
     template = "poll/result_list.html"
     return render(request, template, context)
 
-def position_list(request, spk=None):
+def result_position_list(request, spk=None):
     data = []
     nextPage = 1
     previousPage = 1
@@ -184,7 +184,7 @@ def position_list(request, spk=None):
     template = "poll/result_list.html"
     return render(request, template, context)
 
-def candidate_list(request, spk=None, ppk=None):
+def result_candidate_list(request, spk=None, ppk=None):
     messages.get_messages(request)
     template = "poll/result_list.html"
     data = []
@@ -226,8 +226,9 @@ def candidate_list(request, spk=None, ppk=None):
                             .filter(station__in=stations, position__in=positions) \
                             .first()
     result_sheet_url = None
-    if result_sheet.result_sheet:
-        result_sheet_url = request.build_absolute_uri(result_sheet.result_sheet.url)
+    if result_sheet:
+        if result_sheet.result_sheet:
+            result_sheet_url = request.build_absolute_uri(result_sheet.result_sheet.url)
 
     parties = Party.objects \
                     .prefetch_related(

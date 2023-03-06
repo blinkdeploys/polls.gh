@@ -1,3 +1,3 @@
 from .agent import AgentSerializer
 from .candidate import CandidateSerializer
-from .party import PartySerializer
+from .party import PartySerializer, PartyAsChildSerializer

@@ -34,7 +34,7 @@ def event_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': ['position.title', 'office', 'title', 'start', 'end', 'status'],
+        'columns': [{'title': 'position.title'}, {'title': 'office'}, {'title': 'title'}, {'title': 'start'}, {'title': 'end'}, {'title': 'status'}],
         'next_link': '/poll/events/?page=' + str(nextPage),
         'prev_link': '/poll/events/?page=' + str(previousPage)
     }

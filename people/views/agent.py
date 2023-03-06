@@ -34,7 +34,7 @@ def agent_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': ['first_name', 'last_name', 'email', 'phone', 'status'],
+        'columns': [{'title': 'first_name'}, {'title': 'last_name'}, {'title': 'email'}, {'title': 'phone'}, {'title': 'status'}],
         'next_link': '/people/agents/?page=' + str(nextPage),
         'prev_link': '/people/agents/?page=' + str(previousPage)
     }
