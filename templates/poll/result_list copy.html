@@ -71,31 +71,19 @@
 
                 <!--parties-->
                 {% if parties is not None %}
-                <form method="post"
-                    action="/poll/result/station/{{ spk }}/position/{{ ppk }}"
-                    enctype="multipart/form-data"
-                >
+                <form method="post" action="/poll/result/station/{{ spk }}/position/{{ ppk }}">
                     {% csrf_token %}
-                    <input name="station"
-                            class="form-control" type="hidden"
-                            value="{{ station.pk }}" />
-                    <input name="position"
-                            class="form-control" type="hidden"
-                            value="{{ position.pk }}" />
+                    <input name="station" value="{{ station.pk }}" class="form-control" type="hidden" placeholder="enter count for candidate" />
+
                     <tr>
                         <td colspan="3">
                             <div class="row">
                                 <div class="col">
                                     Upload Statement of Poll and Declaration of Results
-                                    <i>(requirements JPEG, MPEG, GIF, 4kb in size)</i>
+                                    <i>(requirements PDF, 4kb)</i>
                                 </div>
                                 <div class="col-7">
-                                    {% if result_sheet_url is not None and result_sheet.result_sheet.url is not None %}
-                                    <a href="{{ result_sheet_url }}" target="_blank">
-                                        {{ result_sheet.result_sheet.url }}
-                                    </a>
-                                    {% endif %}
-                                    <input type="file" name="result_sheet" class="form-control" placeholder="upload result sheet" />
+                                    <input type="file" name="result_sheet" class="form-control" placeholder="uplaod result sheet" />
                                 </div>
                             </div>
                         </td>
@@ -169,9 +157,7 @@
                                 <div class="col-5">
                                     Total Valid Votes
                                 </div>
-                                <div class="col-2">
-                                    <div id="total-votes-valid"></div>
-                                    <input type="hidden" id="total_valid_votes" name="total_valid_votes" value="{% if result_sheet %}{{ result_sheet.total_valid_votes }}{% else %}0{% endif %}" />
+                                <div class="col-2" id="total-votes-valid">
                                 </div>
                                 <div class="col-4" id="total-votes-in-words-valid">
                                 </div>
@@ -188,9 +174,7 @@
                                     Total Rejected Votes
                                 </div>
                                 <div class="col-2">
-                                    <input id="total-votes-invalid"
-                                        name="total_invalid_votes"
-                                        value="{% if result_sheet %}{{ result_sheet.total_invalid_votes }}{% else %}0{% endif %}"
+                                    <input id="total-votes-invalid" value=""
                                         class="form-control" type="number" min="0"
                                         placeholder="enter count for candidate"
                                         onchange="calculateTotalVotes()"
@@ -211,9 +195,147 @@
                                 <div class="col-5">
                                     Total Votes in Ballot Box
                                 </div>
+                                <div class="col-2" id="total-votes">
+                                </div>
+                                <div class="col-4" id="total-votes-in-words">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            <div align="right">
+                                <button class="btn btn-dark">Save Collation</button>
+                                <button class="btn btn-light">Cancel</button>
+                            </div>
+                        </td>
+                    </tr>
+                </form>
+                {% endif %}
+                {% if candidates is not None %}
+                <form method="post" action="/poll/result/station/{{ spk }}/position/{{ ppk }}">
+                    {% csrf_token %}
+                    <input name="station" value="{{ station.pk }}" class="form-control" type="hidden" placeholder="enter count for candidate" />
+
+                    <tr>
+                        <td colspan="3">
+                            <div class="row">
+                                <div class="col">
+                                    Upload Statement of Poll and Declaration of Results
+                                    <i>(requirements PDF, 4kb)</i>
+                                </div>
+                                <div class="col-7">
+                                    <input type="file" name="result_sheet" class="form-control" placeholder="uplaod result sheet" />
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <div class="bold">Candidates</div>
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            <div class="row" class="bold">
+                                <div class="col-1">Party</div>
+                                <div class="col-5">Candidate Name</div>
+                                <div class="col-2" align="center">Votes</div>
+                                <div class="col-4">Votes (in words)</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% for candidate in candidates %}
+                    <tr>
+                        <td colspan="3">
+                            <div class="row">
+                                <div class="col-1">
+                                    {{ candidate.party.code }}
+                                </div>
+                                <div class="col-5">
+                                    {{ candidate.full_name }}
+                                    <!--a href="/poll/result/station/{{ station.pk }}/position/{{ position.pk }}/candidate/{{ candidate.pk }}">
+                                    </a-->
+                                </div>
                                 <div class="col-2">
-                                    <div id="total-votes"></div>
-                                    <input type="hidden" id="total_votes" name="total_votes" value="{% if result_sheet %}{{ result_sheet.total_votes }}{% else %}0{% endif %}" />
+                                    <input name="candidate" value="{{ candidate.pk }}" class="form-control" type="hidden" placeholder="enter count for candidate" />
+                                    {% if candidate.station_results %}
+                                        {% for result in candidate.station_results|slice:":1" %}
+                                        <input name="votes" value="{{ result.votes }}"
+                                                class="form-control" type="number" min="0"
+                                                placeholder="enter count for candidate"
+                                                data-for="{{ candidate.party.code }}-votes-in-words"
+                                                onchange="convertVotes(this)"
+                                                onblur="convertVotes(this)"
+                                                />
+                                        {% endfor %}
+                                    {% else %}
+                                        <input name="votes" value=""
+                                                class="form-control" type="number" min="0"
+                                                placeholder="enter count for candidate"
+                                                data-for="{{ candidate.party.code }}-votes-in-words"
+                                                onchange="convertVotes(this)"
+                                                onblur="convertVotes(this)"
+                                                />
+                                    {% endif %}
+                                </div>
+                                <div class="col-4" id="{{ candidate.party.code }}-votes-in-words">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="bold">
+                        <td colspan="3">
+                            <div class="row">
+                                <div class="col-1">
+                                    A
+                                </div>
+                                <div class="col-5">
+                                    Total Valid Votes
+                                </div>
+                                <div class="col-2" id="total-votes-valid">
+                                </div>
+                                <div class="col-4" id="total-votes-in-words-valid">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="bold">
+                        <td colspan="3">
+                            <div class="row">
+                                <div class="col-1">
+                                    B
+                                </div>
+                                <div class="col-5">
+                                    Total Rejected Votes
+                                </div>
+                                <div class="col-2">
+                                    <input id="total-votes-invalid" value=""
+                                        class="form-control" type="number" min="0"
+                                        placeholder="enter count for candidate"
+                                        onchange="calculateTotalVotes()"
+                                        onblur="calculateTotalVotes()"
+                                        />
+                                </div>
+                                <div class="col-4" id="total-votes-in-words-invalid">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="bold">
+                        <td colspan="3">
+                            <div class="row">
+                                <div class="col-1">
+                                    C
+                                </div>
+                                <div class="col-5">
+                                    Total Votes in Ballot Box
+                                </div>
+                                <div class="col-2" id="total-votes">
                                 </div>
                                 <div class="col-4" id="total-votes-in-words">
                                 </div>
@@ -326,8 +448,6 @@
         let total_words_invalid = document.getElementById('total-votes-in-words-invalid')
         let total_figures = document.getElementById('total-votes')
         let total_words = document.getElementById('total-votes-in-words')
-        let total_valid_votes = document.getElementById('total_valid_votes')
-        let total_votes = document.getElementById('total_votes')
 
         let total = 0,
             total_valid = 0,
@@ -339,11 +459,9 @@
         total = Number(total_valid) + total_invalid
         if (total_figures_valid) {
             total_figures_valid.innerHTML = total_valid
-            total_valid_votes.value = total_valid
         }
         if (total_figures) {
             total_figures.innerHTML = total
-            total_votes.value = total
         }
         if (total_words) {
             total_words.innerHTML = convertNumberToWords(total)

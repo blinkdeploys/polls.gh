@@ -1,12 +1,12 @@
 import os, json
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
-from poll.models import (Event, Office, Position, Result, ResultApproval)
+from poll.models import (Event, Office, Position, ResultSheet, Result, ResultApproval)
 from people.models import (Agent, Party, Candidate)
 from geo.models import (Nation, Region, Constituency, Station)
 from faker import Faker
 import random
-from poll.constants import StatusChoices, GeoLevelChoices, NameTitleChoices
+from poll.constants import StatusChoices, GeoLevelChoices, NameTitleChoices, TerminalColors
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -52,8 +52,6 @@ def get_model(name, row, count=0):
 
         constituency = row.get('constituency_id', None)
 
-        # print("*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*")
-        # print(constituency)
         if constituency is None:
             return False, None
         else:
@@ -69,8 +67,8 @@ def get_model(name, row, count=0):
                         title=row['title'])
         return (exists, record)
 
-
     # poll
+    '''
 
     if name == "event":
         model = Event
@@ -101,52 +99,64 @@ def get_model(name, row, count=0):
         return (exists, model(id=row['id'],
                         level=row['level'],
                         title=row['title']))
+    '''
 
     if name == "position":
-        # remove all positions
-        Position.objects.all().delete()
-        NATIONAL_COUNT = 1
-        # create all national positions
-        count = 0
-        nation = Nation.objects.first()
-        office = Office.objects.filter(level=GeoLevelChoices.NATIONAL).first()
-        zone_ct = ContentType.objects.get_for_model(Nation)
-        for i in range(0, NATIONAL_COUNT):
-            zone = nation
-            # title = f'The President {nation.title}' if i == 1 else f'Vice-President {nation.title}'
-            title = f'The President {nation.title}'
-            model = Position(
-                    title=title,
-                    details=faker.sentence(),
-                    zone_ct=zone_ct,
-                    zone_id=zone.pk)
-            # model.full_clean()
-            model.save()
-            count = count + 1
-        print(f'{count} National positions created successfully')
+        positions_to_create = []
+        nfound = 0
+        cfound = 0
 
-        # create all constituency positions
-        count = 0
-        zone_ct = ContentType.objects.get_for_model(Constituency)
-        constituencies = Constituency.objects.all()
-        for constituency in constituencies:
-            zone = constituency
-            title = f'Parliamentary Representative, {constituency.title} Consotituency'
-            model = Position(
-                    title=title,
-                    details=faker.sentence(),
+        # find national positions that have not been created
+        ncount = 0
+        zone_ct = ContentType.objects.get_for_model(Nation)
+        positions = Position.objects.filter(zone_ct__in=[zone_ct]).all()
+        position_ids = [p.zone_id for p in positions]
+        nfound = len(position_ids)
+        locations = Nation.objects.all()
+        if positions.count() < locations.count():
+            zones = Nation.objects.exclude(pk__in=position_ids).all()
+            for zone in zones:
+                positions_to_create = positions_to_create + [Position(
+                    title=f'The President, {zone.title}',
                     zone_ct=zone_ct,
-                    zone_id=zone.pk)
-            # model.full_clean()
-            model.save()
+                    zone_id=zone.pk,
+                    details=faker.sentence(),
+                )]
+                ncount = ncount + 1
+
+        # find parliamentary positions that have not been created
+        ccount = 0
+        zone_ct = ContentType.objects.get_for_model(Constituency)
+        positions = Position.objects.filter(zone_ct__in=[zone_ct]).all()
+        position_ids = [p.zone_id for p in positions]
+        cfound = len(position_ids)
+        locations = Constituency.objects.all()
+        if positions.count() < locations.count():
+            zones = Constituency.objects.exclude(pk__in=position_ids).all()
+            for zone in zones:
+                positions_to_create = positions_to_create + [Position(
+                    title=f'Parliamentary Representative, {zone.title} Consotituency',
+                    zone_ct=zone_ct,
+                    zone_id=zone.pk,
+                    details=faker.sentence(),
+                )]
+                ccount = ccount + 1
+
+        count = 0
+        for position_to_create in positions_to_create:
+            position_to_create.save()
             count = count + 1
-        print(f'{count} Constituency positions created successfully')
-        print(f'Data imported successfully')
+
+        print(f'{TerminalColors.OKGREEN}{nfound} National positions found, {cfound} Constituency positions found{TerminalColors.ENDC}')
+        if count > 0:
+            print(f'{TerminalColors.OKGREEN}{count} Positions created successfully ({ncount} National, {ccount} Constituencies){TerminalColors.ENDC}')
+
         return (True, None)
 
+    '''
     if name == "result":
-        MAX_VOTES = 14
-        MAX_STATION = 5
+        MAX_VOTES = 53
+        MAX_STATION = 3
         VOTE_OR_NOT_MAX = 3
         model = Result
         # delete all results
@@ -160,22 +170,171 @@ def get_model(name, row, count=0):
             count = 0
             if random.randint(0, MAX_STATION) == 1:
                 for station in stations:
+                    print(candidate, station)
                     votes = 0
                     if random.randint(0, VOTE_OR_NOT_MAX) == 1:
                         votes = random.randint(0, MAX_VOTES)
+                        result_sheet = ResultSheet.objects \
+                                        .filter(
+                                            station=station,
+                                            position=candidate.position,
+                                        ).first()
                         result = Result(
-                            candidate=candidate,
-                            station=station,
-                            votes=votes,
-                            station_agent_id=None,
-                            result_sheet=None)
+                                        candidate=candidate,
+                                        station=station,
+                                        votes=votes,
+                                        result_sheet=result_sheet,
+                                        station_agent_id=None)
+                        # print(result.__dict__)
                         result.full_clean()
                         result.save()
                         count = count + 1
                 total_count = total_count + count
-            print(f'{count} Polling stations recorded for candidate {candidate.full_name}')
-        print(f'{total_count} Results created successfully')
+            print(f'{TerminalColors.OKGREEN}{count} Polling stations recorded for candidate {candidate.full_name}{TerminalColors.ENDC}')
+        print(f'{TerminalColors.OKGREEN}{total_count} Results created successfully{TerminalColors.ENDC}')
         return (True, None)
+    '''
+
+    # people
+
+    if name == "candidate":
+        model = Candidate
+        # ensure that there are at least one candidate for each position for each party
+        parties = Party.objects.all()
+        print("Deleting all candidate records (y/n)?")
+        Candidate.objects.all().delete()
+
+        total = 0
+        # POSITION_HAS_CANDIDATE_MAX=3
+
+        positions = Position.objects.filter(zone_ct__in=[ContentType.objects.get_for_model(Nation)]).all()
+        for party in parties:
+            count = 0
+            for position in positions:
+                print(position, party)
+                ismof = random.randint(0, 1)
+                prefix = faker.prefix_male()
+                first_name = faker.first_name_male()
+                if ismof == 0:
+                    prefix = faker.prefix_female()
+                    first_name = faker.first_name_female()
+                model = Candidate(
+                            prefix=prefix,
+                            first_name=first_name,
+                            last_name=faker.last_name(),
+                            other_names=faker.first_name(),
+                            description=faker.sentence(),
+                            party=party,
+                            position=position,
+                            status=StatusChoices.ACTIVE
+                )
+                model.full_clean()
+                model.save()
+                count = count + 1
+                total = total + count
+            print(f'{TerminalColors.OKGREEN}{count} {party.title} Presidential Candidates created successfully.{TerminalColors.ENDC}')
+
+        positions = Position.objects.filter(zone_ct__in=[ContentType.objects.get_for_model(Constituency)]).all()
+        for party in parties:
+            count = 0
+            for position in positions:
+                print(position, party)
+                # if random.randint(0, POSITION_HAS_CANDIDATE_MAX) == 1:
+                ismof = random.randint(0, 1)
+                prefix = faker.prefix_male()
+                first_name = faker.first_name_male()
+                if ismof == 0:
+                    prefix = faker.prefix_female()
+                    first_name = faker.first_name_female()
+                model = Candidate(
+                            prefix=prefix,
+                            first_name=first_name,
+                            last_name=faker.last_name(),
+                            other_names=faker.first_name(),
+                            description=faker.sentence(),
+                            party=party,
+                            position=position,
+                            status=StatusChoices.ACTIVE
+                )
+                model.full_clean()
+                model.save()
+                count = count + 1
+                total = total + count
+            print(f'{TerminalColors.OKGREEN}{count} {party.title} Candidates created successfully.{TerminalColors.ENDC}')
+        print(f'{TerminalColors.OKGREEN}{total} Parliamentary Candidates created successfully.{TerminalColors.ENDC}')
+
+        return (False, None)
+
+    if name == "party":
+        model = Party
+        exists = model.objects.filter(id=row['id']).first()
+        return (exists, model(id=row['id'],
+                        code=row['code'],
+                        title=row['title']))
+
+
+    '''
+    if name == "result_sheet":
+        total = 0
+        print('deleting result sheets...')
+        ResultSheet.objects.all().delete()
+        stations = Station.objects.all()
+        positions = Position.objects.filter(zone_ct__in=[ContentType.objects.get_for_model(Nation)]).all()
+        for position in positions:
+            count = 0
+            for station in stations:
+                model = ResultSheet(
+                        position=position,
+                        station=station,
+                        total_votes=0,
+                        total_valid_votes=0,
+                        total_invalid_votes=0,
+                        result_sheet=None,
+                        station_agent=None,
+                        station_approval_at=None,
+                        constituency_agent=None,
+                        constituency_approved_at=None,
+                        region_agent=None,
+                        regional_approval_at=None,
+                        nation_agent=None,
+                        national_approval_at=None,
+                        status=StatusChoices.ACTIVE,
+                )
+                model.full_clean()
+                model.save()
+                count = count + 1
+                total = total + 1
+            print(f'{count} {position} Presidential Result Sheets created successfully')
+        positions = Position.objects.filter(zone_ct__in=[ContentType.objects.get_for_model(Constituency)]).all()
+        for position in positions:
+            count = 0
+            for station in stations:
+                model = ResultSheet(
+                        position=position,
+                        station=station,
+                        total_votes=0,
+                        total_valid_votes=0,
+                        total_invalid_votes=0,
+                        result_sheet=None,
+                        station_agent=None,
+                        station_approval_at=None,
+                        constituency_agent=None,
+                        constituency_approved_at=None,
+                        region_agent=None,
+                        regional_approval_at=None,
+                        nation_agent=None,
+                        national_approval_at=None,
+                        status=StatusChoices.ACTIVE,
+                )
+                model.full_clean()
+                model.save()
+                count = count + 1
+                total = total + 1
+            print(f'{count} {position} Parliamentary Result Sheets created successfully')
+        print(f'{total} Data records imported successfully')
+        return (True, None)
+    '''
+
 
     '''
     if name == "result_approval":
@@ -183,9 +342,6 @@ def get_model(name, row, count=0):
         exists = model.objects.filter(id=row['id']).first()
         return (exists, model(id=row['id'],
                         title=row['title']))
-
-
-    # people
 
     if name == "user":
         model = User
@@ -218,79 +374,6 @@ def get_model(name, row, count=0):
                         status_id=1))
     '''
 
-    if name == "candidate":
-        model = Candidate
-        # ensure that there are at least one candidate for each position for each party
-        parties = Party.objects.all()
-        print("Deleting all candidate records (y/n)?")
-        Candidate.objects.all().delete()
-
-        total = 0
-
-        positions = Position.objects.filter(zone_ct__in=[ContentType.objects.get_for_model(Nation)]).all()
-        for party in parties:
-            count = 0
-            for position in positions:
-                ismof = random.randint(0, 1)
-                prefix = faker.prefix_male()
-                first_name = faker.first_name_male()
-                if ismof == 0:
-                    prefix = faker.prefix_female()
-                    first_name = faker.first_name_female()
-                model = Candidate(
-                            prefix=prefix,
-                            first_name=first_name,
-                            last_name=faker.last_name(),
-                            other_names=faker.first_name(),
-                            description=faker.sentence(),
-                    party=party,
-                    position=position,
-                    status=StatusChoices.ACTIVE
-                )
-                model.full_clean()
-                model.save()
-                count = count + 1
-                total = total + count
-            print(f'{count} {party.title} Presidential Candidates created successfully.')
-
-        positions = Position.objects.filter(zone_ct__in=[ContentType.objects.get_for_model(Constituency)]).all()
-        for party in parties:
-            count = 0
-            for position in positions:
-                if random.randint(0, 10) == 1:
-                    ismof = random.randint(0, 1)
-                    prefix = faker.prefix_male()
-                    first_name = faker.first_name_male()
-                    if ismof == 0:
-                        prefix = faker.prefix_female()
-                        first_name = faker.first_name_female()
-                    model = Candidate(
-                                prefix=prefix,
-                                first_name=first_name,
-                                last_name=faker.last_name(),
-                                other_names=faker.first_name(),
-                                description=faker.sentence(),
-                        party=party,
-                        position=position,
-                        status=StatusChoices.ACTIVE
-                    )
-                    model.full_clean()
-                    model.save()
-                    count = count + 1
-                    total = total + count
-            print(f'{count} {party.title} Candidates created successfully.')
-        print(f'{total} Parliamentary Candidates created successfully.')
-
-        return (False, None)
-
-    if name == "party":
-        model = Party
-        exists = model.objects.filter(id=row['id']).first()
-        return (exists, model(id=row['id'],
-                        code=row['code'],
-                        title=row['title']))
-
-
     return False, None
 
 
@@ -302,52 +385,62 @@ class Command(BaseCommand):
     help = 'Import data from a JSON file into a Listings table'
 
     def add_arguments(self, parser):
-        # parser.add_argument('file_path', type=str, help='The path to the JSON file')
-        pass
+        parser.add_argument('-models', '--models', type=str, nargs='+', help='The model to run if empty, then all models will be populated')
+        parser.add_argument('-verbose', '--verbose', type=int, nargs='+', help='Run the population showing each line from the scripts')
 
     def handle(self, *args, **kwargs):
-        # file_path = kwargs['file_path']
+
+        models_to_use = kwargs['models']
+        use_single_model = False
+        if models_to_use is not None:
+            use_single_model = len(models_to_use) > 0
+            models_to_use = models_to_use.split(' ')
+
+        use_verbose = kwargs['verbose']
+        if use_verbose is not None:
+            use_verbose = int(use_verbose) > 1
 
         json_files = get_all_files()
         found_tables = []
         seeded = []
         for json_file in sorted(json_files):
-            print(json_file)
+            print(f'Processing {json_file}...')
             try:
                 with open(f"{JSON_PATH}{json_file}") as json_file_content:
                     data = json.load(json_file_content)
                     imported = 0
                     found = 0
 
-                    exists, model = get_model(data["name"], data["data"][0])
-
-                    if model is not None:
-                        i = 0
-                        for row in data["data"]:
-                            print(row)
-                            if data["name"] not in found_tables:
-                                found_tables.append(data["name"])
-                            exists, model = get_model(data["name"], row, i)
-                            i = i + 1
-                            if exists:
-                                found = found + 1
+                    if use_single_model is False or (use_single_model is True and data["data"][0] in models_to_use):
+                        exists, model = get_model(data["name"], data["data"][0])
+                        if model is not None:
+                            i = 0
+                            for row in data["data"]:
+                                if use_verbose:
+                                    print(row)
+                                if data["name"] not in found_tables:
+                                    found_tables.append(data["name"])
+                                exists, model = get_model(data["name"], row, i)
+                                i = i + 1
+                                if exists:
+                                    found = found + 1
+                                else:
+                                    try:
+                                        if model is not None:
+                                            model.full_clean()
+                                            model.save()
+                                            self.stdout.write(self.style.SUCCESS(f'Data imported successfully'))
+                                            imported = imported + 1
+                                            if data["name"] not in seeded:
+                                                seeded.append(data["name"])
+                                    except ValidationError as e:
+                                        self.stderr.write(f'Error: {e}')
+                            if found > 0:
+                                self.stdout.write(self.style.SUCCESS(f'{found} records found for model {data["name"]}'))
+                            if imported > 0:
+                                self.stdout.write(self.style.SUCCESS(f'{imported} recordds successfully imported {data["name"]}'))
                             else:
-                                try:
-                                    if model is not None:
-                                        model.full_clean()
-                                        model.save()
-                                        self.stdout.write(self.style.SUCCESS(f'Data imported successfully'))
-                                        imported = imported + 1
-                                        if data["name"] not in seeded:
-                                            seeded.append(data["name"])
-                                except ValidationError as e:
-                                    self.stderr.write(f'Error: {e}')
-                        if found > 0:
-                            self.stdout.write(self.style.SUCCESS(f'{found} records found for model {data["name"]}'))
-                        if imported > 0:
-                            self.stdout.write(self.style.SUCCESS(f'{imported} recordds successfully imported {data["name"]}'))
-                        else:
-                            self.stdout.write(self.style.ERROR(f'No data imported for {data["name"]}'))
+                                self.stdout.write(self.style.ERROR(f'No data imported for {data["name"]}'))
 
             except FileNotFoundError:
                 raise FileNotFoundError(f'Fixture file {json_file} not in folder')

@@ -24,14 +24,13 @@ class AgentForm(forms.Form):
             self.fields['title'].widget=forms.TextInput(attrs=text_attrs)
             text_attrs["placeholder"] = "select party agent"
             self.fields['agent'].widget=forms.TextInput(attrs=text_attrs)
-
 '''
+
 class CandidateForm(forms.Form):
+    prefix = forms.CharField(required=True)
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
-    email = forms.CharField(required=True)
-    phone = forms.CharField(required=True)
-    agent = forms.CharField(required=True)
+    other_names = forms.CharField(required=True)
     address = forms.CharField(widget=forms.Textarea, required=True)
     description = forms.CharField(widget=forms.Textarea, required=True)
     status = forms.ChoiceField(label="Status", choices=StatusChoices.choices,
@@ -40,6 +39,25 @@ class CandidateForm(forms.Form):
                                widget=forms.Select(attrs={'class':'form-control'}))
     party = forms.ModelChoiceField(label="Party", queryset=Party.objects.all(),
                                widget=forms.Select(attrs={'class':'form-control'}))
+
+    def __init__(self, *args, **kwargs):
+        super(CandidateForm, self).__init__(*args, **kwargs)
+        text_attrs={
+            "placeholder": "enter nation name",
+            "class": "form-control",
+        }
+        text_attrs["placeholder"] = "enter contituency code"
+        self.fields['prefix'].widget=forms.TextInput(attrs=text_attrs)
+        text_attrs["placeholder"] = "enter contituency name"
+        self.fields['first_name'].widget=forms.TextInput(attrs=text_attrs)
+        text_attrs["placeholder"] = "enter details"
+        self.fields['last_name'].widget=forms.TextInput(attrs=text_attrs)
+        text_attrs["placeholder"] = "select party agent"
+        self.fields['other_names'].widget=forms.TextInput(attrs=text_attrs)
+        text_attrs["placeholder"] = "select party agent"
+        self.fields['address'].widget=forms.TextInput(attrs=text_attrs)
+        text_attrs["placeholder"] = "select party agent"
+        self.fields['description'].widget=forms.TextInput(attrs=text_attrs)
 
 class PartyForm(forms.Form):
     code = forms.CharField(required=True)

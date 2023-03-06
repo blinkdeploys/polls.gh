@@ -40,8 +40,8 @@ def candidate_list(request):
             'data': serializer.data,
             'count': paginator.count,
             'numpages' : paginator.num_pages,
-            'next_link': '/geo/candidates/?page=' + str(nextPage),
-            'prev_link': '/geo/candidates/?page=' + str(previousPage)
+            'next_link': '/people/candidates/?page=' + str(nextPage),
+            'prev_link': '/people/candidates/?page=' + str(previousPage)
         })
     elif request.method == 'POST':
         serializer = CandidateSerializer(data=request.data)

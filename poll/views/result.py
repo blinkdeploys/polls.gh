@@ -1,10 +1,11 @@
+import io
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse, HttpResponseRedirect
 from geo.models import Station, Nation, Constituency
-from poll.models import Result, Position
+from poll.models import ResultSheet, Result, Position
 from people.models import Party, Candidate
 from poll.serializers import ResultSerializer, PositionSerializer
 from geo.serializers import StationSerializer
@@ -220,6 +221,30 @@ def candidate_list(request, spk=None, ppk=None):
                                     to_attr="station_results"
                                 )
                           )
+    
+    result_sheet = ResultSheet.objects \
+                            .filter(station__in=stations, position__in=positions) \
+                            .first()
+    result_sheet_url = None
+    if result_sheet.result_sheet:
+        result_sheet_url = request.build_absolute_uri(result_sheet.result_sheet.url)
+
+    parties = Party.objects \
+                    .prefetch_related(
+                        Prefetch(
+                            'candidates',
+                            queryset=Candidate.objects \
+                                .filter(position=ppk)
+                                .prefetch_related(
+                                    Prefetch(
+                                        'results',
+                                        queryset=Result.objects.filter(station_id=spk),
+                                        to_attr="station_results"
+                                    )
+                                ),
+                            to_attr="party_candidates"
+                        )
+                    )
 
     # results = Result.objects.filter(
     #     candidate__in=candidates,
@@ -236,7 +261,7 @@ def candidate_list(request, spk=None, ppk=None):
         station_data = station_paginator.page(station_paginator.num_pages)
     station_serializer = StationSerializer(station_data, context={'request': request}, many=True)
 
-    position_page = request.GET.get('spage', 1)
+    position_page = request.GET.get('ppage', 1)
     position_paginator = Paginator(positions, total_per_page)
     try:
         position_data = position_paginator.page(position_page)
@@ -246,7 +271,7 @@ def candidate_list(request, spk=None, ppk=None):
         position_data = position_paginator.page(station_paginator.num_pages)
     position_serializer = PositionSerializer(position_data, context={'request': request}, many=True)
 
-    candidate_page = request.GET.get('spage', 1)
+    candidate_page = request.GET.get('cpage', 1)
     candidate_paginator = Paginator(candidates, total_per_page)
     try:
         candidate_data = candidate_paginator.page(candidate_page)
@@ -255,6 +280,16 @@ def candidate_list(request, spk=None, ppk=None):
     except EmptyPage:
         candidate_data = candidate_paginator.page(candidate_paginator.num_pages)
     candidate_serializer = CandidateSerializer(candidate_data, context={'request': request}, many=True)
+
+    party_page = request.GET.get('papage', 1)
+    party_paginator = Paginator(parties, total_per_page)
+    try:
+        party_data = party_paginator.page(party_page)
+    except PageNotAnInteger:
+        party_data = party_paginator.page(1)
+    except EmptyPage:
+        party_data = party_paginator.page(party_paginator.num_pages)
+    party_serializer = CandidateSerializer(party_data, context={'request': request}, many=True)
 
     # result_page = request.GET.get('spage', 1)
     # result_paginator = Paginator(results, total_per_page)
@@ -272,7 +307,10 @@ def candidate_list(request, spk=None, ppk=None):
         # 'results': result_serializer.data,
         'stations': station_serializer.data,
         'positions': position_serializer.data,
-        'candidates': candidate_data, # candidate_serializer.data,
+        # 'candidates': candidate_data, # candidate_serializer.data,
+        'parties': party_data,
+        'result_sheet': result_sheet,
+        'result_sheet_url': result_sheet_url,
         'spk': spk,
         'ppk': ppk,
         # 'count': paginator.count,
@@ -284,27 +322,65 @@ def candidate_list(request, spk=None, ppk=None):
     if request.method == 'POST':
         print("*********************************")
         from pprint import pprint
-        pprint(request.POST.__dict__)
-        pprint(request.POST.getlist('votes'))
+        # pprint(request.POST.__dict__)
+        # pprint(request.POST.getlist('votes'))
         pprint(request.POST.getlist('candidate'))
-        pprint(request.POST.get('station', 0))
+        # pprint(request.POST.get('station', 0))
+        pprint(request.FILES['result_sheet'])
 
         station = request.POST.get('station', 0)
-        candidates = request.POST.getlist('candidate', 0)
-        votes = request.POST.getlist('votes', 0)
+        position = request.POST.get('position', 0)
+        total_votes = request.POST.get('total_votes', 0)
+        total_invalid_votes = request.POST.get('total_invalid_votes', 0)
+        total_valid_votes = request.POST.get('total_valid_votes', 0)
+        result_sheet_file = request.FILES['result_sheet']
+
+        candidates = request.POST.getlist('candidate', [])
+        votes = request.POST.getlist('votes', [])
+
+        station = 0 if len(station) <= 0 else int(station)
+        position = 0 if len(position) <= 0 else int(position)
+        total_votes = 0 if len(total_votes) <= 0 else int(total_votes)
+        total_invalid_votes = 0 if len(total_invalid_votes) <= 0 else int(total_invalid_votes)
+        total_valid_votes = 0 if len(total_valid_votes) <= 0 else int(total_valid_votes)
+
         n = len(candidates)
+
+        result_sheet, _ = ResultSheet.objects.update_or_create(
+                                    station_id=station,
+                                    position_id=position,
+                                    defaults=dict(
+                                        total_votes=total_votes,
+                                        total_valid_votes=total_valid_votes,
+                                        total_invalid_votes=total_invalid_votes,
+                                        result_sheet=result_sheet_file,
+                                        station_agent=None,
+                                        station_approval_at=None,
+                                        constituency_agent=None,
+                                        constituency_approved_at=None,
+                                        region_agent=None,
+                                        regional_approval_at=None,
+                                        nation_agent=None,
+                                        national_approval_at=None,
+                                        status=StatusChoices.ACTIVE
+                                    )
+        )
+
+
         for i in range(0, n):
             try:
-                model = Result.objects.update_or_create(
-                    station_id=int(station),
-                    candidate_id=int(candidates[i]),
-                    defaults=dict(
-                        votes=int(votes[i]),
-                        result_sheet=None,
-                        constituency_agent=None,
-                        status=StatusChoices.ACTIVE
-                    )
-                )
+                result_vote = 0 if len(votes[i]) <= 0 else int(votes[i])
+                result_candidate = 0 if len(candidates[i]) <= 0 else int(candidates[i])
+                result, _ = Result.objects.update_or_create(
+                                            station_id=station,
+                                            candidate_id=result_candidate,
+                                            defaults=dict(
+                                                votes=result_vote,
+                                                result_sheet=result_sheet,
+                                                station_agent=None,
+                                                status=StatusChoices.ACTIVE
+                                            )
+                                        )
             except Exception as e:
                 print(e)
                 context = {

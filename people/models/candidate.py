@@ -33,10 +33,10 @@ class Candidate(models.Model):
     def full_name(self):
         return "{} {} {}".format(self.prefix, self.first_name, self.last_name)
 
-    @property
-    def result_votes(self):
-        votes = 0
-        results = self.results.all()
-        for result in results:
-            votes = votes + int(result.votes)
-        return votes
+    # @property
+    # def result_votes(self):
+    #     votes = 0
+    #     results = self.results.all()
+    #     for result in results:
+    #         votes = votes + int(result.votes)
+    #     return votes

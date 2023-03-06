@@ -1,13 +1,26 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from poll.constants import GeoLevelChoices, StatusChoices
+from poll.utils import upload_directory_path
 
 
 class ResultSheet(models.Model):
+    station = models.ForeignKey(
+                                "geo.Station",
+                                on_delete=models.CASCADE,
+                                help_text=_("Polling Station"),
+                                related_name='result_sheets',
+                                default=True, null=True, blank=True)
+    position = models.ForeignKey(
+                                "poll.Position",
+                                on_delete=models.CASCADE,
+                                help_text=_("Position"),
+                                related_name='result_sheets',
+                                default=True, null=True, blank=True)
     total_votes = models.IntegerField(_("Total number of votes"), help_text=_("Total number of votes"), null=True, blank=True)
     total_valid_votes = models.IntegerField(_("Total number of valid votes"), help_text=_("Total number of valid votes"), null=True, blank=True)
     total_invalid_votes = models.IntegerField(_("Total number of invalid votes"), help_text=_("Total number of invalid votes"), null=True, blank=True)
-    result_sheet = models.FileField(upload_to='results%Y%m%d',
+    result_sheet = models.FileField(upload_to=upload_directory_path,
                                     help_text=_("Statement of poll and declaration of results"),
                                     default=None, null=True, blank=True)
     station_agent = models.ForeignKey(
