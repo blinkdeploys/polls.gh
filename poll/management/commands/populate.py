@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from poll.models import (Event, Office, Position, ResultSheet, Result, ResultApproval)
 from people.models import (Agent, Party, Candidate)
 from geo.models import (Nation, Region, Constituency, Station)
+from account.models import User
 from faker import Faker
 import random
 from poll.constants import StatusChoices, GeoLevelChoices, NameTitleChoices, TerminalColors
@@ -342,25 +343,33 @@ def get_model(name, row, count=0):
         exists = model.objects.filter(id=row['id']).first()
         return (exists, model(id=row['id'],
                         title=row['title']))
+    '''
 
     if name == "user":
         model = User
-        exists = model.objects.filter(id=row['id']).first()
+        User.objects.all().delete()
         model = User(
-                password=password,
-                email=faker.unique().email(),
-                username=faker.username(),
-                first_name=faker.first_name(),
-                last_name=faker.last_name(),
-                date_join=now(),
-                is_active=False,
-                is_staff=False,
-                is_superuser=False,
-            )
-        model.set_password(password)
+            username='admin',
+            email='admin@blinkdeploys.pollsgh',
+            password='pbkdf2_sha256$260000$dpfuKn0dBPUbxkxoNjapFr$wdc/sTwmlP1J159XtWp1nYoRHlNR+IdN1MOU03+xub4=',
+            is_active=True,
+            is_staff=True,
+            is_superuser=True,
+        )
         model.save()
+        model = User(
+            username='eakatue',
+            email='eakatue@gmail.com',
+            password='pbkdf2_sha256$260000$8gjcXneYMYvyZ5ThHyWRkj$m8znsuWbrUCp6EjUuE7TN46CZ9PuoBi+7JISDHT8MMM=',
+            is_active=True,
+            is_staff=True,
+            is_superuser=True,
+        )
+        model.save()
+        print(f'{TerminalColors.OKGREEN}Superusers created successfully.{TerminalColors.ENDC}')
+        # model.set_password(password)
         return True, None
-    '''
+
 
     if name == "agent":
         model = Agent
@@ -376,7 +385,7 @@ def get_model(name, row, count=0):
                                 last_name=faker.last_name(),
                                 email=faker.email(),
                                 phone=faker.phone_number(),
-                                address=faker.sentence(),
+                                address=faker.address(),
                                 description=faker.sentence(),
                                 status=StatusChoices.ACTIVE
                 )

@@ -2,14 +2,10 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from poll.constants import StatusChoices
 
+
 class Region(models.Model):
 	title = models.CharField("Region name", max_length=255)
 	details = models.TextField(blank=True, null=True)
-	agent = models.ForeignKey(
-		"people.Agent", on_delete=models.CASCADE,
-		help_text=_("Agent in command"),
-		blank=True, null=True,
-        related_name='regions')
 	nation = models.ForeignKey(
 		"Nation", on_delete=models.CASCADE,
 		help_text=_("Nation"),

@@ -38,7 +38,11 @@ def constituency_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': [{'title': 'title'}, {'title': 'region.title'}],
+        'columns': [
+                        {'title': 'title', 'width': 50},
+                        {'title': 'region.title', 'width': 15},
+                        {'title': 'agent.full_name', 'width': 30}
+                    ],
         'next_link': '/geo/constituencies/?page=' + str(nextPage),
         'prev_link': '/geo/constituencies/?page=' + str(previousPage)
     }

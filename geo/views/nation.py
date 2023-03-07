@@ -36,7 +36,11 @@ def nation_list(request):
         'title': 'Nations',
         'data': serializer.data,
         'count': paginator.count,
-        'columns': [{'title': 'code'}, {'title': 'title'}],
+        'columns': [
+                        {'title': 'code', 'width': 10},
+                        {'title': 'title', 'width': 50},
+                        {'title': 'agent.full_name', 'width': 30}
+                    ],
         'numpages' : paginator.num_pages,
         'next_link': '/geo/nations/?page=' + str(nextPage),
         'prev_link': '/geo/nations/?page=' + str(previousPage)

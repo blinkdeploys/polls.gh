@@ -21,5 +21,3 @@ urlpatterns = [
     url(r'^station/(?P<pk>[0-9]+)$', geo_views.station_detail, name="station_detail"),
 
 ]
-'''
-'''

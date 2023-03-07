@@ -18,10 +18,13 @@ def get_item(dictionary, key):
         return dictionary
     base = dictionary
     all_items = ''
-    print(dictionary, key)
-    print(':::::::::::::::::::::::::::::')
+    if key == 'agent':
+        print(dictionary, key)
+        print(':::::::::::::::::::::::::::::')
     paths = key.split('&')
     for path in paths:
+        print(path)
+        print("==============>")
         keys = path.split('.')
         item = base
         for k in keys:
@@ -29,10 +32,17 @@ def get_item(dictionary, key):
             #     return item
             if type(item) not in [str, int] and item is not None:
                 item = item.get(k, '')
-        if type(item) is str:
-            if len(all_items) > 0:
-                all_items += ' '
-            all_items = all_items + item
+            print(type(item))
+            print(item)
+            print(k)
+            print("==============>")
+        if '&' in k:
+            if type(item) is str:
+                if len(all_items) > 0:
+                    all_items += ' '
+                all_items = all_items + item
+        else:
+            return item
     return all_items
 
 

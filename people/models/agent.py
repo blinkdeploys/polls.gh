@@ -19,12 +19,18 @@ class Agent(models.Model):
 	phone = models.CharField(max_length=50)
 	address =  models.TextField(blank=True, null=True)
 	zone_ct = models.ForeignKey(ContentType,
-                                         limit_choices_to=zone_options,
-                                         on_delete=models.SET_NULL,
-                                         related_name='authorized_zone',
-                                         null=True, blank=True)
+								limit_choices_to=zone_options,
+								on_delete=models.SET_NULL,
+								related_name='agent_ct',
+								null=True, blank=True)
 	zone_id = models.PositiveIntegerField(null=True, db_index=True)
 	zone = GenericForeignKey('zone_ct', 'zone_id')
+	user = models.OneToOneField(
+		"account.User",
+		on_delete=models.SET_NULL,
+        # primary_key=True,
+		related_name="agent",
+		default=None, null=True, blank=True)
 	description = models.TextField(blank=True, null=True)
 	status = models.CharField(max_length=35, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)
 	created_at = models.DateTimeField("Created At", auto_now_add=True)
