@@ -7,7 +7,7 @@ class Party(models.Model):
 	title = models.CharField("Party name", max_length=255)
 	details = models.TextField(blank=True, null=True)
 	agent = models.ForeignKey(
-							  "account.User", on_delete=models.CASCADE,
+							  "people.Agent", on_delete=models.CASCADE,
 							  help_text=_("Agent in command"),
 							  null=True, blank=True,
 							  related_name='parties')

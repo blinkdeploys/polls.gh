@@ -24,28 +24,28 @@ class ResultSheet(models.Model):
                                     help_text=_("Statement of poll and declaration of results"),
                                     default=None, null=True, blank=True)
     station_agent = models.ForeignKey(
-                             "account.User",
+                             "people.Agent",
                              on_delete=models.CASCADE,
                              help_text=_("Constituency agent that recorded results"),
                              related_name='station_result_sheets',
                              default=None, null=True, blank=True)
     station_approval_at = models.DateTimeField("Date of Stational Approved At", default=None, null=True, blank=True)
     constituency_agent = models.ForeignKey(
-                             "account.User",
+                             "people.Agent",
                              on_delete=models.CASCADE,
                              help_text=_("Constituency agent that recorded results"),
                              related_name='constituency_result_sheets',
                              default=None, null=True, blank=True)
     constituency_approved_at = models.DateTimeField("Constituency Approved At", default=None, null=True, blank=True)
     region_agent = models.ForeignKey(
-                             "account.User",
+                             "people.Agent",
                              on_delete=models.CASCADE,
                              help_text=_("Regional agent that recorded results"),
                              related_name='regional_result_sheets',
                              default=None, null=True, blank=True)
     regional_approval_at = models.DateTimeField("Date of Regional Approved At", default=None, null=True, blank=True)
     nation_agent = models.ForeignKey(
-                             "account.User",
+                             "people.Agent",
                              on_delete=models.CASCADE,
                              help_text=_("National agent that recorded results"),
                              related_name='national_result_sheets',
@@ -95,7 +95,7 @@ class Result(models.Model):
                                     default=None,  null=True, blank=True)
     # party agent responsible
     station_agent = models.ForeignKey(
-                             "account.User",
+                             "people.Agent",
                              on_delete=models.CASCADE,
                              help_text=_("Station agent that recorded the result"),
                              related_name='results',
@@ -126,7 +126,7 @@ class ResultApproval(models.Model):
     approved_at = models.DateTimeField("Approved At", auto_now_add=True)
     created_at = models.DateTimeField("Created At", auto_now_add=True)
     approving_agent = models.ForeignKey(
-                                        "account.User",
+                                        "people.Agent",
                                         on_delete=models.CASCADE,
                                         help_text=_("Agent that approved the result"),
                                         related_name='result_approvals')

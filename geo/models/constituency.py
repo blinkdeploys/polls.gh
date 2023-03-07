@@ -10,7 +10,7 @@ class Constituency(models.Model):
 	region = models.ForeignKey("Region", on_delete=models.CASCADE,
 			    help_text=_("Region"),
         		related_name='constituencies')
-	agent = models.ForeignKey("account.User", on_delete=models.CASCADE,
+	agent = models.ForeignKey("people.Agent", on_delete=models.CASCADE,
 				help_text=_("Agent in command"), blank=True, null=True,
 				related_name='constituencies')
 	status = models.CharField(max_length=35, choices=StatusChoices.choices, default=StatusChoices.ACTIVE, help_text=_("Constituency status"))

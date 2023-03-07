@@ -36,7 +36,7 @@ def agent_list(request):
         'numpages' : paginator.num_pages,
         'columns': [
             {'title': 'full_name', 'width': 30},
-            {'title': 'zone_title&zone_type', 'width': 25},
+            {'title': 'zone_title&zone_type', 'width': 30},
             {'title': 'phone', 'width': 15},],
         'next_link': '/people/agents/?page=' + str(nextPage),
         'prev_link': '/people/agents/?page=' + str(previousPage)
@@ -48,11 +48,13 @@ def agent_detail(request, pk=None):
     data = get_object_or_404(Agent, pk=pk)
     initial = {
         'pk': data.pk,
-        'code': data.code,
+        'zone_ct': data.zone_ct,
+        'zone_id': data.zone_id,
         'first_name': data.first_name,
         'last_name': data.last_name,
         'email': data.email,
         'phone': data.phone,
+        'address': data.address,
         'status': data.status,
     }
     if request.method == "GET":

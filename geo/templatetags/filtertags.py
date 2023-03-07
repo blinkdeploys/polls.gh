@@ -27,7 +27,7 @@ def get_item(dictionary, key):
         for k in keys:
             # if type(item) is not 'object':
             #     return item
-            if type(item) not in [str, int]:
+            if type(item) not in [str, int] and item is not None:
                 item = item.get(k, '')
         if type(item) is str:
             if len(all_items) > 0:
@@ -42,6 +42,7 @@ def ucwords(dictionary):
     items = item.lower() \
                 .replace('_', ' ') \
                 .replace('.', ' ') \
+                .replace('&', ' & ') \
                 .split(' ')
     result = ''
     for item in items:

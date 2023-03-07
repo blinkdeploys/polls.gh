@@ -32,7 +32,7 @@
                     <div class="bold">Polling Stations</div>
                 </td>
                 <td colspan="2">
-                    {% include 'layout/search.html' %}
+                    {% include 'layout/search.html' with action='/poll/result/stations/' method='get' only%}
                 </td>
             </tr>
 

@@ -11,7 +11,7 @@ class Station(models.Model):
 		help_text=_("Constituency"),
         related_name='stations')
 	agent = models.ForeignKey(
-		"account.User", on_delete=models.CASCADE,
+		"people.Agent", on_delete=models.CASCADE,
 		help_text=_("Agent in command"),
 		blank=True, null=True,
         related_name='stations')

@@ -36,7 +36,7 @@ def region_list(request):
         'title': 'Regions',
         'data': serializer.data,
         'count': paginator.count,
-        'columns': [{'title': 'title'}, {'title': 'nation.title'}],
+        'columns': [{'title': 'title'}, {'title': 'nation.title'}, {'title': 'agent.full_name'}],
         'numpages' : paginator.num_pages,
         'next_link': '/geo/regions/?page=' + str(nextPage),
         'prev_link': '/geo/regions/?page=' + str(previousPage)

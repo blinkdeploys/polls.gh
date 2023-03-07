@@ -5,26 +5,37 @@ from poll.models import Position
 
 
 class AgentForm(forms.Form):
-    code = forms.CharField(required=True)
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
-    agent = forms.CharField(required=True)
-
-'''
+    email = forms.CharField(required=True)
+    phone = forms.CharField(required=True)
+    address = forms.CharField(required=True)
+    descriptions = forms.CharField(required=True)
+    zone_ct = forms.CharField(required=True)
+    zone_id = forms.CharField(required=True)
 
     def __init__(self, *args, **kwargs):
-            super(NationForm, self).__init__(*args, **kwargs)
-            text_attrs={
-                "placeholder": "enter nation Name",
-                "class": "form-control",
-            }
-            text_attrs["placeholder"] = "nation two letter code"
-            self.fields['code'].widget=forms.TextInput(attrs=text_attrs)
-            text_attrs["placeholder"] = "enter nation name"
-            self.fields['title'].widget=forms.TextInput(attrs=text_attrs)
-            text_attrs["placeholder"] = "select party agent"
-            self.fields['agent'].widget=forms.TextInput(attrs=text_attrs)
-'''
+        super(AgentForm, self).__init__(*args, **kwargs)
+        text_attrs={
+            "placeholder": "enter nation Name",
+            "class": "form-control",
+        }
+        self.fields['first_name'].widget=forms.TextInput(attrs=text_attrs)
+        text_attrs["placeholder"] = "enter agent first name"
+        self.fields['last_name'].widget=forms.TextInput(attrs=text_attrs)
+        text_attrs["placeholder"] = "enter agent last name"
+        self.fields['email'].widget=forms.TextInput(attrs=text_attrs)
+        text_attrs["placeholder"] = "enter agent email"
+        self.fields['phone'].widget=forms.TextInput(attrs=text_attrs)
+        text_attrs["placeholder"] = "enter address"
+        self.fields['address'].widget=forms.Textarea(attrs=text_attrs)
+        text_attrs["placeholder"] = "enter details"
+        self.fields['descriptions'].widget=forms.Textarea(attrs=text_attrs)
+        text_attrs["placeholder"] = "select zone type"
+        self.fields['zone_ct'].widget=forms.Select(attrs=text_attrs)
+        text_attrs["placeholder"] = "select zone"
+        self.fields['zone_id'].widget=forms.Select(attrs=text_attrs)
+
 
 class CandidateForm(forms.Form):
     prefix = forms.CharField(required=True)
@@ -58,6 +69,7 @@ class CandidateForm(forms.Form):
         self.fields['address'].widget=forms.TextInput(attrs=text_attrs)
         text_attrs["placeholder"] = "select party agent"
         self.fields['description'].widget=forms.TextInput(attrs=text_attrs)
+
 
 class PartyForm(forms.Form):
     code = forms.CharField(required=True)

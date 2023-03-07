@@ -9,7 +9,7 @@ class Nation(models.Model):
     code = models.CharField("Nation code", max_length=25)
     title = models.CharField("Nation name", max_length=255)
     agent = models.ForeignKey(
-        "account.User", on_delete=models.CASCADE,
+        "people.Agent", on_delete=models.CASCADE,
         help_text=_("Agent in command"),
         blank=True, null=True,
         related_name='nations')
