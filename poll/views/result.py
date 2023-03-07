@@ -321,20 +321,15 @@ def result_candidate_list(request, spk=None, ppk=None):
         # 'prev_link': '/poll/results/?page=' + str(previousPage)
     }
     if request.method == 'POST':
-        print("*********************************")
-        from pprint import pprint
-        # pprint(request.POST.__dict__)
-        # pprint(request.POST.getlist('votes'))
-        pprint(request.POST.getlist('candidate'))
-        # pprint(request.POST.get('station', 0))
-        pprint(request.FILES['result_sheet'])
-
         station = request.POST.get('station', 0)
         position = request.POST.get('position', 0)
         total_votes = request.POST.get('total_votes', 0)
         total_invalid_votes = request.POST.get('total_invalid_votes', 0)
         total_valid_votes = request.POST.get('total_valid_votes', 0)
-        result_sheet_file = request.FILES['result_sheet']
+        
+        result_sheet_file = None
+        if request.FILES:
+            result_sheet_file = request.FILES['result_sheet']
 
         candidates = request.POST.getlist('candidate', [])
         votes = request.POST.getlist('votes', [])
