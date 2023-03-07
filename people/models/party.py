@@ -20,6 +20,7 @@ class Party(models.Model):
 	def __str__(self):
 		return self.title
 
+	@property
 	def result_votes(self):
 		votes = 0
 		candidates = self.candidates.all()

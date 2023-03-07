@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from geo.models import Station, Nation, Constituency
 from poll.models import ResultSheet, Result, Position
 from people.models import Party, Candidate
-from poll.serializers import ResultSerializer, PositionSerializer
+from poll.serializers import ResultSerializer, PositionSerializer, PositionCollationSerializer
 from geo.serializers import StationSerializer
 from people.serializers import PartySerializer, CandidateSerializer
 from django.contrib.contenttypes.models import ContentType
@@ -157,7 +157,10 @@ def result_position_list(request, spk=None):
         station_data = station_paginator.page(1)
     except EmptyPage:
         station_data = station_paginator.page(station_paginator.num_pages)
-    station_serializer = StationSerializer(station_data, context={'request': request}, many=True)
+    context = dict(
+        request=request,
+    )
+    station_serializer = StationSerializer(station_data, context=context, many=True)
 
     position_page = request.GET.get('spage', 1)
     position_paginator = Paginator(positions, total_per_page)
@@ -167,7 +170,8 @@ def result_position_list(request, spk=None):
         position_data = position_paginator.page(1)
     except EmptyPage:
         position_data = position_paginator.page(position_paginator.num_pages)
-    position_serializer = PositionSerializer(position_data, context={'request': request}, many=True)
+    context = dict(request=request, spk=spk)
+    position_serializer = PositionCollationSerializer(position_data, context=context, many=True)
 
     context = {
         'title': 'Results',
@@ -272,16 +276,6 @@ def result_candidate_list(request, spk=None, ppk=None):
         position_data = position_paginator.page(station_paginator.num_pages)
     position_serializer = PositionSerializer(position_data, context={'request': request}, many=True)
 
-    candidate_page = request.GET.get('cpage', 1)
-    candidate_paginator = Paginator(candidates, total_per_page)
-    try:
-        candidate_data = candidate_paginator.page(candidate_page)
-    except PageNotAnInteger:
-        candidate_data = candidate_paginator.page(1)
-    except EmptyPage:
-        candidate_data = candidate_paginator.page(candidate_paginator.num_pages)
-    candidate_serializer = CandidateSerializer(candidate_data, context={'request': request}, many=True)
-
     party_page = request.GET.get('papage', 1)
     party_paginator = Paginator(parties, total_per_page)
     try:
@@ -290,7 +284,17 @@ def result_candidate_list(request, spk=None, ppk=None):
         party_data = party_paginator.page(1)
     except EmptyPage:
         party_data = party_paginator.page(party_paginator.num_pages)
-    party_serializer = CandidateSerializer(party_data, context={'request': request}, many=True)
+    party_serializer = PartySerializer(party_data, context={'request': request}, many=True)
+
+    # candidate_page = request.GET.get('cpage', 1)
+    # candidate_paginator = Paginator(candidates, total_per_page)
+    # try:
+    #     candidate_data = candidate_paginator.page(candidate_page)
+    # except PageNotAnInteger:
+    #     candidate_data = candidate_paginator.page(1)
+    # except EmptyPage:
+    #     candidate_data = candidate_paginator.page(candidate_paginator.num_pages)
+    # candidate_serializer = CandidateSerializer(candidate_data, context={'request': request}, many=True)
 
     # result_page = request.GET.get('spage', 1)
     # result_paginator = Paginator(results, total_per_page)
@@ -305,9 +309,9 @@ def result_candidate_list(request, spk=None, ppk=None):
     context = {
         'title': 'Results',
         # 'data': serializer.data,
-        # 'results': result_serializer.data,
         'stations': station_serializer.data,
         'positions': position_serializer.data,
+        # 'results': result_serializer.data,
         # 'candidates': candidate_data, # candidate_serializer.data,
         'parties': party_data,
         'result_sheet': result_sheet,

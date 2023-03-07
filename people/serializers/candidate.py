@@ -10,3 +10,14 @@ class CandidateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Candidate
         fields = ('pk', 'full_name', 'party', 'position', 'description', 'status', 'created_at')
+
+
+'''
+class CandidateCollateSerializer(serializers.ModelSerializer):
+    party = PartyAsChildSerializer()
+    position = PositionSerializer()
+    votes = PositionSerializer()
+    class Meta:
+        model = Candidate
+        fields = ('pk', 'full_name', 'party', 'position', 'votes', 'status', 'created_at')
+'''
