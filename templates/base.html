@@ -8,10 +8,13 @@
         {% bootstrap_css %}
         {% bootstrap_javascript %}
         {% load static %}
-        <link rel="stylesheet" href="{% static 'index.css' %}" type="text/css" media="screen" />
+        {% block style %}
+        <link href="{% static 'fontawesomefree/css/all.min.css' %}" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" type="text/css" href="{% static 'index.css' %}" media="screen" />
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Tilt+Warp&family=Cousine&display=swap" rel="stylesheet">
+        {% endblock %}
     </head>
     <body>
         {% include 'layout/nav.html' %}
