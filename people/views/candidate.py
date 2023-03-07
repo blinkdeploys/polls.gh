@@ -36,7 +36,11 @@ def candidate_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': [{'title': 'party.code', 'width': 5}, {'title': 'full_name', 'width': 50}, {'title': 'position.title', 'width': 30}],
+        'columns': [
+            {'title': 'party.code', 'width': 10},
+            {'title': 'full_name', 'width': 40},
+            {'title': 'position.title', 'width': 40}
+        ],
         'column_widths': [5, None, 15],
         'next_link': '/people/candidates/?page=' + str(nextPage),
         'prev_link': '/people/candidates/?page=' + str(previousPage)

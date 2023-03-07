@@ -34,7 +34,9 @@ def party_list(request):
         'data': serializer.data,
         'count': paginator.count,
         'numpages' : paginator.num_pages,
-        'columns': [{'title': 'code', 'width': 5}, {'title': 'title', 'width': 60}, {'title': 'agent', 'width': 15}],
+        'columns': [{'title': 'code', 'width': 5},
+                    {'title': 'title', 'width': 60},
+                    ],
         'next_link': '/people/parties/?page=' + str(nextPage),
         'prev_link': '/people/parties/?page=' + str(previousPage)
     }
