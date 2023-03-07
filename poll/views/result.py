@@ -8,7 +8,7 @@ from geo.models import Station, Nation, Constituency
 from poll.models import ResultSheet, Result, Position
 from people.models import Party, Candidate
 from poll.serializers import ResultSerializer, PositionSerializer, PositionCollationSerializer
-from geo.serializers import StationSerializer
+from geo.serializers import StationSerializer, StationCollationSerializer
 from people.serializers import PartySerializer, CandidateSerializer
 from django.contrib.contenttypes.models import ContentType
 from poll.forms import ResultForm
@@ -96,8 +96,8 @@ def result_station_list(request):
         station_data = station_paginator.page(1)
     except EmptyPage:
         station_data = station_paginator.page(station_paginator.num_pages)
-
-    station_serializer = StationSerializer(station_data, context={'request': request}, many=True)
+    context = dict(request=request)
+    station_serializer = StationCollationSerializer(station_data, context=context, many=True)
 
     if station_data.has_next():
         station_next_page = station_data.next_page_number()
@@ -157,10 +157,8 @@ def result_position_list(request, spk=None):
         station_data = station_paginator.page(1)
     except EmptyPage:
         station_data = station_paginator.page(station_paginator.num_pages)
-    context = dict(
-        request=request,
-    )
-    station_serializer = StationSerializer(station_data, context=context, many=True)
+    context = dict(request=request)
+    station_serializer = StationCollationSerializer(station_data, context=context, many=True)
 
     position_page = request.GET.get('spage', 1)
     position_paginator = Paginator(positions, total_per_page)
@@ -274,7 +272,8 @@ def result_candidate_list(request, spk=None, ppk=None):
         position_data = position_paginator.page(1)
     except EmptyPage:
         position_data = position_paginator.page(station_paginator.num_pages)
-    position_serializer = PositionSerializer(position_data, context={'request': request}, many=True)
+    context = dict(request=request, spk=spk)
+    position_serializer = PositionCollationSerializer(position_data, context=context, many=True)
 
     party_page = request.GET.get('papage', 1)
     party_paginator = Paginator(parties, total_per_page)

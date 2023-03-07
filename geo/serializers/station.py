@@ -26,3 +26,18 @@ class StationSerializer(serializers.ModelSerializer):
             phone=agent.phone,
             address=agent.address,
         )
+
+class StationCollationSerializer(StationSerializer):
+    constituency = ConstituencySerializer()
+    agent = serializers.SerializerMethodField()
+    votes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Station
+        fields = ('pk', 'code', 'title', 'votes', 'constituency', 'agent', 'status', 'created_at')
+
+    def get_votes(self, obj):
+        total = 0
+        for result in obj.results.all():
+            total += result.votes
+        return total
