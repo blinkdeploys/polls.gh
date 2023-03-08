@@ -57,6 +57,8 @@ urlpatterns = [
     path("poll/", include("poll.urls")),
     path("api/poll/", include("poll.api.urls")),
 
+    path("reports/", include("report.urls")),
+    # path("api/reports/", include("poll.api.urls")),
 ]
 
 if settings.DEBUG:

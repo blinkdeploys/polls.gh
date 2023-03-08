@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from poll.constants import StatusChoices, NameTitleChoices
 
+
 class Candidate(models.Model):
     prefix = models.CharField(_("Candidate title"), max_length=255, blank=True, null=True)
     first_name = models.CharField(_("Candidate first name"), max_length=255, default='')
@@ -33,10 +34,10 @@ class Candidate(models.Model):
     def full_name(self):
         return "{} {} {}".format(self.prefix, self.first_name, self.last_name)
 
-    # @property
-    # def result_votes(self):
-    #     votes = 0
-    #     results = self.results.all()
-    #     for result in results:
-    #         votes = votes + int(result.votes)
-    #     return votes
+    @property
+    def votes(self):
+        votes = 0
+        results = self.results.all()
+        for result in results:
+            votes = votes + int(result.votes)
+        return votes

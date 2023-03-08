@@ -38,26 +38,33 @@ CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS').split(' ')
 
 # Application definition
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+]
+THIRD_PARTY_APPS = [
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
     'django_extensions',
+    'bootstrap5',
+    'fontawesomefree',
+]
+POLLSGH_APPS = [
     'accounts',
     'account',
     'geo',
     'people',
     'poll',
-    'bootstrap5',
-    'fontawesomefree',
+    'report',
 ]
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + POLLSGH_APPS
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

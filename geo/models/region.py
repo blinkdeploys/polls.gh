@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from poll.constants import StatusChoices
+from itertools import chain
 
 
 class Region(models.Model):
@@ -18,3 +19,11 @@ class Region(models.Model):
 
 	def __str__(self):
 		return self.title
+
+	@property	
+	def stations(self):
+		constituencies = self.constituencies.all()
+		stations = []
+		for constituency in constituencies:
+			list(chain(stations, constituency.stations.all()))
+		return stations

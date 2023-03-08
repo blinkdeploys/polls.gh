@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% if user.is_authenticated %}
+{% block content %}
+{% load filtertags %}
+<div class="container">
+  <div class="row mt-4 mb-4">
+    <div class="col-8">
+      <h2 class="">National Collation Results</h2>
+    </div>
+    <div class="col">
+        {% include 'layout/search.html' with search_url=row_link only%}
+    </div>
+  </div>
+  <div class="rowx">
+    <div class="col table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <td class="bold" valign="top" style="min-width: 350px; position:sticky; left:0; z-index:1; background-color: aliceblue;">
+              <div class="row">
+                <div class="col-1">
+                  <i class="fa fa-regular fa-circle"></i>
+                </div>
+                <div class="col bold">
+                  CANDIDATE
+                </div>
+              </div>
+            </td>
+            <td class="bold" align="center" valign="top">
+              TOTAL VOTES
+            </td>
+            <td class="bold" align="center" valign="top">
+              PERCENTAGE (%)
+            </td>
+            <td class="bold" align="center" valign="top">
+              COLLATION OF EC REGIONAL SUMMARY SHEETS
+            </td>
+            <td class="bold" align="center" valign="top">
+              EC NATIONAL DECLARED RESULTS
+            </td>
+            <td class="bold" align="center" valign="top">
+              VARIANCE EC OWN RESULTS
+            </td>
+            <td class="bold" align="center" valign="top">
+              VARIANCE COLLATED VRS EC DECLARED
+            </td>
+            {% if regions is not None %}
+            {% for region in regions %}
+            <td align="center" align="center" class="bold" valign="top">
+              {{ region.title }}
+            </td>
+            {% endfor %}
+            {% endif %}
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+            {% if candidates is not None %}
+            {% for candidate in candidates %}
+            <tr>
+              <td style="position:sticky; left:0; z-index:1; background-color: aliceblue;">
+                <div class="row">
+                  <div class="col-1">
+                    <i class="fa fa-regular fa-circle"></i>
+                  </div>
+                  <div class="col-9">
+                    {{ candidate.full_name }}
+                  </div>
+                  <div class="col-2">
+                    {{ candidate.party.code }}
+                  </div>
+                </div>
+              </td>
+              <td name="total-votes" align="center">
+                {{ candidate.votes }}
+              </td>
+              <td name="percentage" align="center">
+                0
+              </td>
+              <td align="center">
+                0
+              </td>
+              <td align="center">
+                0
+              </td>
+              <td align="center">
+                0
+              </td>
+              <td align="center">
+                0
+              </td>
+              {% if regions is not None %}
+              {% for region in regions %}
+              <td align="center">
+                {% with column='results_'|add:region.title|make_snake %}
+                  {% with results=candidate|get_item:column %}
+                    {{ results|sum:'votes' }}
+                  {% endwith %}
+                {% endwith %}
+              </td>
+              {% endfor %}
+              {% endif %}
+              <td></td>
+            </tr>
+            {% endfor %}
+          {% endif %}
+          <tr>
+            <td style="position:sticky; left:0; z-index:1; background-color: aliceblue;" class="bold">TOTAL</td>
+            <td name="total-total-votes" class="bold" align="center">0</td>
+            <td name="total-percentage" class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+function getColumnTotal(name) {
+  const doms = document.getElementsByName(name)
+  const totalDoms = document.getElementsByName(`total-${name}`)
+  let total = 0
+  doms.forEach(function(dom) {
+    total += Number(dom.innerHTML)
+  })
+  totalDoms.forEach(function(totalDom) {
+    totalDom.innerHTML = total
+  })
+}
+
+function calculatePercentages() {
+  console.log("Winning!")
+  const doms = document.getElementsByName('percentage')
+  const voteDoms = document.getElementsByName('total-votes')
+  const totalDoms = document.getElementsByName(`total-total-votes`)
+  const totalVotes = Number(totalDoms[0].innerHTML) || 0
+  const totalPercentageDoms = document.getElementsByName('total-percentage')
+  let totalPercentage = 0
+  if (totalVotes > 0) {
+    doms.forEach(function(dom, d) {
+      const rowPercentage = 100 * Number(voteDoms[d].innerHTML) / totalVotes
+      dom.innerHTML = rowPercentage
+      totalPercentage += rowPercentage
+    })
+  }
+  totalPercentageDoms.forEach(function(totalPercentageDom) {
+    totalPercentageDom.innerHTML = totalPercentage
+  })
+}
+
+getColumnTotal('total-votes')
+calculatePercentages()
+
+</script>
+{% endblock %}
+{% endif %}

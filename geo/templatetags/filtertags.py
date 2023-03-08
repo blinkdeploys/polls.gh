@@ -11,6 +11,15 @@ def concat(arg1, arg2):
     return str(arg1) + str(arg2)
 
 @register.filter
+def sum(dictionary, key):
+    total = 0
+    for d in dictionary:
+        for k, v in d.__dict__.items():
+            if key == k:
+                total += v
+    return total
+
+@register.filter
 def get_item(dictionary, key):
     if dictionary is None:
         return ''
@@ -36,6 +45,12 @@ def get_item(dictionary, key):
             return item
     return all_items
 
+
+@register.filter
+def make_snake(dictionary):
+    if type(dictionary) is str:
+        return dictionary.replace(' ', '_').lower()
+    return ''
 
 @register.filter
 def ucwords(dictionary):
