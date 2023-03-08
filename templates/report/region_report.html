@@ -18,7 +18,7 @@
       <table class="table">
         <thead>
           <tr>
-            <td class="bold" valign="top" style="min-width: 350px; position:sticky; left:0; z-index:1; background-color: aliceblue;">
+            <td class="bold td-sticky" valign="top">
               <div class="row">
                 <div class="col-1">
                   <i class="fa fa-regular fa-circle"></i>
@@ -28,7 +28,9 @@
                 </div>
               </div>
             </td>
-            <td class="bold" align="center" valign="top">
+            <td class="bold" align="center" valign="top"
+                name="sum-columns" data-target="total-results--"
+            >
               TOTAL VOTES
             </td>
             <td class="bold" align="center" valign="top">
@@ -48,7 +50,9 @@
             </td>
             {% if constituencies is not None %}
             {% for constituency in constituencies %}
-            <td align="center" align="center" valign="top">
+            <td align="center" align="center" valign="top"
+                name="sum-columns" data-target="results-{{ constituency.pk }}"
+            >
               <a href="/reports/constituency/{{ constituency.id }}" class="bold">
                 {{ constituency.title }}
               </a>
@@ -62,7 +66,7 @@
             {% if candidates is not None %}
             {% for candidate in candidates %}
             <tr>
-              <td style="position:sticky; left:0; z-index:1; background-color: aliceblue;">
+              <td class="td-sticky">
                 <div class="row">
                   <div class="col-1">
                     <i class="fa fa-regular fa-circle"></i>
@@ -75,19 +79,21 @@
                   </div>
                 </div>
               </td>
-              <td name="total-votes" align="center">
-                {% with results=candidate|get_item:'results_total' %}
-                    {% with cell_value=results|sum:'votes' %}
-                        {% if cell_value > 0 %}
-                            <a href="#">
-                                {{ cell_value }}
-                            </a>
-                        {% else %}
-                            -
-                        {% endif %}
-                    {% endwith %}
-                {% endwith %}
+              {% with results=candidate|get_item:'results_total' %}
+              {% with cell_value=results|sum:'votes' %}
+              <td name="total-votes" align="center" data-value="{% if cell_value > 0 %}{{ cell_value }}{% else %}0{% endif %}">
+                {% if cell_value > 0 %}
+                    <a href="#"
+                        data-col="total-results--"
+                    >
+                        {{ cell_value }}
+                    </a>
+                {% else %}
+                    -
+                {% endif %}
               </td>
+              {% endwith %}
+              {% endwith %}
               <td name="percentage" align="center">
                 -
               </td>
@@ -110,7 +116,9 @@
                   {% with results=candidate|get_item:column %}
                   {% with cell_value=results|sum:'votes' %}
                     {% if cell_value > 0 %}
-                        <a href="#">
+                        <a href="#"
+                            data-col="results-{{ constituency.pk }}"
+                        >
                             {{ cell_value }}
                         </a>
                     {% else %}
@@ -127,8 +135,10 @@
             {% endfor %}
           {% endif %}
           <tr>
-            <td style="position:sticky; left:0; z-index:1; background-color: aliceblue;" class="bold">TOTAL</td>
-            <td name="total-total-votes" class="bold" align="center">0</td>
+            <td class="bold td-sticky">TOTAL</td>
+            <td name="total-total-votes" class="bold" align="center"
+                id="total-total-results--"
+            >0</td>
             <td name="total-percentage" class="bold" align="center">0</td>
             <td class="bold" align="center">0</td>
             <td class="bold" align="center">0</td>
@@ -136,7 +146,9 @@
             <td class="bold" align="center">0</td>
             {% if constituencies is not None %}
             {% for constituency in constituencies %}
-            <td class="bold" align="center">0</td>
+            <td class="bold" align="center"
+                id="total-results-{{ constituency.pk }}"
+            >0</td>
             {% endfor %}
             {% endif %}
           <td></td>
@@ -148,39 +160,8 @@
 </div>
 
 <script>
-function getColumnTotal(name) {
-  const doms = document.getElementsByName(name)
-  const totalDoms = document.getElementsByName(`total-${name}`)
-  let total = 0
-  doms.forEach(function(dom) {
-    total += Number(dom.innerHTML)
-  })
-  totalDoms.forEach(function(totalDom) {
-    totalDom.innerHTML = total
-  })
-}
 
-function calculatePercentages() {
-  console.log("Winning!")
-  const doms = document.getElementsByName('percentage')
-  const voteDoms = document.getElementsByName('total-votes')
-  const totalDoms = document.getElementsByName(`total-total-votes`)
-  const totalVotes = Number(totalDoms[0].innerHTML) || 0
-  const totalPercentageDoms = document.getElementsByName('total-percentage')
-  let totalPercentage = 0
-  if (totalVotes > 0) {
-    doms.forEach(function(dom, d) {
-      const rowPercentage = 100 * Number(voteDoms[d].innerHTML) / totalVotes
-      dom.innerHTML = rowPercentage
-      totalPercentage += rowPercentage
-    })
-  }
-  totalPercentageDoms.forEach(function(totalPercentageDom) {
-    totalPercentageDom.innerHTML = totalPercentage
-  })
-}
-
-getColumnTotal('total-votes')
+calculateTotals()
 calculatePercentages()
 
 </script>

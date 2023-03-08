@@ -19,6 +19,8 @@ a, a:hover, a:visited, a:active {
     text-transform: uppercase;
 }
 
-.sticky-td {
-    position:sticky; left:0; z-index:1; background-color: aliceblue;
+.td-sticky {
+    min-width: 350px;
+    position:sticky; left:0; z-index:1;
+    background-color: aliceblue !important;
 }
