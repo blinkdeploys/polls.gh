@@ -7,10 +7,10 @@
   <div class="row mt-4 mb-4">
     <div class="col-8">
       <h2 class="">Regional Collation Results</h2>
-      <h4 class="upper">{{ region.title }} Region</h4>
+      <h5 class="upper">{{ region.title }} Region</h5>
     </div>
     <div class="col">
-        {% include 'layout/search.html' with search_url=row_link only%}
+        {% include 'layout/search.html' with search_url=row_link q=request.GET.q only%}
     </div>
   </div>
   <div class="rowx">
@@ -77,30 +77,46 @@
               </td>
               <td name="total-votes" align="center">
                 {% with results=candidate|get_item:'results_total' %}
-                  {{ results|sum:'votes' }}
+                    {% with cell_value=results|sum:'votes' %}
+                        {% if cell_value > 0 %}
+                            <a href="#">
+                                {{ cell_value }}
+                            </a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    {% endwith %}
                 {% endwith %}
               </td>
               <td name="percentage" align="center">
-                0
+                -
               </td>
               <td align="center">
-                0
+                -
               </td>
               <td align="center">
-                0
+                -
               </td>
               <td align="center">
-                0
+                -
               </td>
               <td align="center">
-                0
+                -
               </td>
               {% if constituencies is not None %}
               {% for constituency in constituencies %}
               <td align="center">
                 {% with column='results_'|add:constituency.title|make_snake %}
                   {% with results=candidate|get_item:column %}
-                    {{ results|sum:'votes' }}
+                  {% with cell_value=results|sum:'votes' %}
+                    {% if cell_value > 0 %}
+                        <a href="#">
+                            {{ cell_value }}
+                        </a>
+                    {% else %}
+                        -
+                    {% endif %}
+                  {% endwith %}
                   {% endwith %}
                 {% endwith %}
               </td>

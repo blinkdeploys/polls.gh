@@ -19,9 +19,9 @@ from poll.utils import snakeify
 def nation_report(request):
     nextPage = 1
     previousPage = 1
-    nation = Nation.objects.first()
     parties = Party.objects.all()
-    regions = Region.objects.filter(nation=nation).all()
+    nation = Nation.objects.first()
+    regions = nation.regions.all()
     
     candidate_qs = Candidate.objects.all() \
                             .prefetch_related(
@@ -114,9 +114,9 @@ def nation_report(request):
 def region_report(request, rpk=None):
     nextPage = 1
     previousPage = 1
-    region = Region.objects.filter(pk=rpk).first()
     parties = Party.objects.all()
-    constituencies = Constituency.objects.filter(region=region).all()
+    region = Region.objects.filter(pk=rpk).first()
+    constituencies = region.constituencies.all()
     
     candidate_qs = Candidate.objects.all() \
                             .prefetch_related(
@@ -207,7 +207,7 @@ def constituency_report(request, cpk=None):
     previousPage = 1
     parties = Party.objects.all()
     constituency = Constituency.objects.filter(pk=cpk).first()
-    stations = Station.objects.filter(constituency=constituency).all()
+    stations = constituency.stations.all()
     
     candidate_qs = Candidate.objects.all() \
                             .prefetch_related(
@@ -239,6 +239,7 @@ def constituency_report(request, cpk=None):
                                             to_attr="results_total"
                                         )
                                     )
+        i = 0
         for station in stations:
             station_lookup = snakeify(station.code)
             station_lookup = f'results_{station_lookup}'
@@ -270,13 +271,10 @@ def constituency_report(request, cpk=None):
         candidate_list['party'] = candidate.party
         candidate_list['position'] = candidate.position
         for k, v in candidate.__dict__.items():
-            print(k, v)
             if 'results_' in k:
+                print(k, '======>', v)
                 candidate_list[k] = v
         candidate_lists.append(candidate_list)
-
-        print(candidate_list)
-        print('::::::::::::::::::::::::::')
 
 
     context = {

@@ -7,10 +7,10 @@
   <div class="row mt-4 mb-4">
     <div class="col-8">
       <h2 class="">{{ title }}</h2>
-      <h4 class="upper">{{ nation.title }}</h4>
+      <h5 class="upper">{{ nation.title }}</h5>
     </div>
     <div class="col">
-        {% include 'layout/search.html' with search_url=row_link only%}
+        {% include 'layout/search.html' with search_url=row_link q=request.GET.q only%}
     </div>
   </div>
   <div class="rowx">
@@ -81,26 +81,34 @@
                 {% endwith %}
               </td>
               <td name="percentage" align="center">
-                0
+                -
               </td>
               <td align="center">
-                0
+                -
               </td>
               <td align="center">
-                0
+                -
               </td>
               <td align="center">
-                0
+                -
               </td>
               <td align="center">
-                0
+                -
               </td>
               {% if regions is not None %}
               {% for region in regions %}
               <td align="center">
                 {% with column='results_'|add:region.title|make_snake %}
                   {% with results=candidate|get_item:column %}
-                    {{ results|sum:'votes' }}
+                    {% with cell_value=results|sum:'votes' %}
+                      {% if cell_value > 0 %}
+                      <a href="/poll/result/station/28/position/1391">
+                        {{ cell_value }}
+                      </a>
+                      {% else %}
+                      -
+                      {% endif %}
+                    {% endwith %}
                   {% endwith %}
                 {% endwith %}
               </td>
@@ -118,22 +126,11 @@
             <td class="bold" align="center">0</td>
             <td class="bold" align="center">0</td>
             <td class="bold" align="center">0</td>
+            {% if regions is not None %}
+            {% for region in regions %}
             <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
-            <td class="bold" align="center">0</td>
+            {% endfor %}
+            {% endif %}
             <td></td>
           </tr>
         </tbody>

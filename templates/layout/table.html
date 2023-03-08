@@ -8,7 +8,7 @@
       <h2 class="">{{ title }}</h2>
     </div>
     <div class="col">
-        {% include 'layout/search.html' with search_url=row_link only%}
+        {% include 'layout/search.html' with search_url=row_link q=request.GET.q only%}
     </div>
   </div>
   

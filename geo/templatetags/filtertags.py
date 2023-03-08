@@ -15,7 +15,13 @@ def concat(arg1, arg2):
 def sum(dictionary, key):
     total = 0
     for d in dictionary:
+        if key == 'results_f251118':
+            print('::::::::::::::::::::::::::::::>>>>>>>>>>>')
+            print(d)
         for k, v in d.__dict__.items():
+            if key == 'results_f251118':
+                print('::::::::::::::::::::::::::::::>>>>>>>>>>>')
+                print(k, v)
             if key == k:
                 total += v
     return total
