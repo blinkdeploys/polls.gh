@@ -5,6 +5,11 @@ from datetime import datetime
 from django.core.serializers.json import DjangoJSONEncoder
 
 
+def snakeify(title):
+    if type(title) is str:
+        return title.lower().replace(' ', '_').replace('.', '')
+    return ''
+
 def upload_directory_path(instance, filename):
     # Get Current Date
     todays_date = datetime.now()

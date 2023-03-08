@@ -1,6 +1,7 @@
 # coding=utf-8
 # from django.template.base import Library
 from django import template
+from poll.utils import snakeify
 
 register = template.Library()
 
@@ -49,7 +50,7 @@ def get_item(dictionary, key):
 @register.filter
 def make_snake(dictionary):
     if type(dictionary) is str:
-        return dictionary.replace(' ', '_').lower()
+        return snakeify(dictionary)
     return ''
 
 @register.filter

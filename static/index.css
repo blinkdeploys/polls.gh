@@ -18,3 +18,7 @@ a, a:hover, a:visited, a:active {
 .upper {
     text-transform: uppercase;
 }
+
+.sticky-td {
+    position:sticky; left:0; z-index:1; background-color: aliceblue;
+}

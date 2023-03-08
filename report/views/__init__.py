@@ -1,1 +1,1 @@
-from .nation import nation_report
+from .nation import nation_report, region_report, constituency_report
