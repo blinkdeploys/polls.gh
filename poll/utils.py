@@ -5,9 +5,23 @@ from datetime import datetime
 from django.core.serializers.json import DjangoJSONEncoder
 
 
-def snakeify(title):
+def intify(value) -> int:
+    if type(value) is int:
+        value = value
+    elif type(value) is str:
+        value = int(value)
+    else:
+        value = 0
+    return value
+
+def snakeify(title, remove_special=True):
     if type(title) is str:
-        return title.lower().replace(' ', '_').replace('.', '')
+        title = title.lower().replace(' ', '_').replace('.', '')
+        if remove_special:
+            remove = ['+','-','=','!','~','`','*','|','"','\'','$','%','^','&','@','{','}','[',']',';',',','.','<','>','?','@','&','*','(',')','\/','/']
+            for c in remove:
+                title = title.replace(c, '')
+        return title
     return ''
 
 def upload_directory_path(instance, filename):

@@ -12,6 +12,13 @@ def concat(arg1, arg2):
     return str(arg1) + str(arg2)
 
 @register.filter
+def count(dictionary):
+    try:
+        return dictionary.count()
+    except Exception as e:
+        return 0
+
+@register.filter
 def sum(dictionary, key):
     total = 0
     for d in dictionary:
@@ -52,6 +59,10 @@ def get_item(dictionary, key):
             return item
     return all_items
 
+
+@register.filter
+def add_quotes(dictionary):
+    return f'{dictionary}'
 
 @register.filter
 def make_snake(dictionary):

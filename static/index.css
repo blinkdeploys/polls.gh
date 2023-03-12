@@ -20,7 +20,18 @@ a, a:hover, a:visited, a:active {
 }
 
 .td-sticky {
+    max-width: 350px;
     min-width: 350px;
+    width: 350px;
     position:sticky; left:0; z-index:1;
+    background-color: aliceblue !important;
+}
+.td-alert {
+    background-color: lavenderblush !important;
+}
+.td-warning {
+    background-color:seashell !important;
+}
+.td-ok {
     background-color: aliceblue !important;
 }

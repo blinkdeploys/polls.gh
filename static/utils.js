@@ -19,12 +19,14 @@ function calculatePercentages() {
     const totalPercentageDoms = document.getElementsByName('total-percentage')
     let totalPercentage = 0
     if (totalVotes > 0) {
-        doms.forEach(function(dom, d) {
-            const cellValue = Number(voteDoms[d].getAttribute('data-value'))
-            const rowPercentage = 100 * cellValue / totalVotes
-            dom.innerHTML = rowPercentage
-            totalPercentage += rowPercentage
-        })
+      doms.forEach(function(dom, d) {
+        if (voteDoms[d]) {
+          const cellValue = Number(voteDoms[d].getAttribute('data-value'))
+          const rowPercentage = 100 * cellValue / totalVotes
+          dom.innerHTML = rowPercentage
+          totalPercentage += rowPercentage
+        }
+      })
     }
     totalPercentageDoms.forEach(function(totalPercentageDom) {
         totalPercentageDom.innerHTML = totalPercentage

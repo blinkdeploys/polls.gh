@@ -329,6 +329,10 @@ def result_candidate_list(request, spk=None, ppk=None):
         total_votes = request.POST.get('total_votes', 0)
         total_invalid_votes = request.POST.get('total_invalid_votes', 0)
         total_valid_votes = request.POST.get('total_valid_votes', 0)
+
+        print('::::::::::::::::::::::::::::::::')
+        print(total_valid_votes)
+        print('::::::::::::::::::::::::::::::::')
         
         result_sheet_file = None
         if request.FILES:
@@ -355,19 +359,13 @@ def result_candidate_list(request, spk=None, ppk=None):
                                         result_sheet=result_sheet_file,
                                         station_agent=None,
                                         station_approval_at=None,
-                                        constituency_agent=None,
-                                        constituency_approved_at=None,
-                                        region_agent=None,
-                                        regional_approval_at=None,
-                                        nation_agent=None,
-                                        national_approval_at=None,
                                         status=StatusChoices.ACTIVE
                                     )
         )
 
 
         for i in range(0, n):
-            try:
+            # try:
                 result_vote = 0 if len(votes[i]) <= 0 else int(votes[i])
                 result_candidate = 0 if len(candidates[i]) <= 0 else int(candidates[i])
                 result, _ = Result.objects.update_or_create(
@@ -380,11 +378,11 @@ def result_candidate_list(request, spk=None, ppk=None):
                                                 status=StatusChoices.ACTIVE
                                             )
                                         )
-            except Exception as e:
-                print(e)
-                context = {
-                    'error': 'There was an error saving the result. Please try again.'
-                }
+            # except Exception as e:
+            #     print('Exception :', e)
+            #     context = {
+            #         'error': 'There was an error saving the result. Please try again.'
+            #     }
         print("*********************************")
         message="Result sheet successfully saved"
         context = {

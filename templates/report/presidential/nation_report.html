@@ -3,6 +3,7 @@
 {% if user.is_authenticated %}
 {% block content %}
 {% load filtertags %}
+
 <div class="container">
   <div class="row mt-4 mb-4">
     <div class="col-8">
@@ -33,6 +34,9 @@
             >
               TOTAL VOTES
             </td>
+
+
+            {% if level == 4 %}
             <td class="bold" align="center" valign="top">
               PERCENTAGE (%)
             </td>
@@ -48,6 +52,22 @@
             <td class="bold" align="center" valign="top">
               VARIANCE COLLATED VRS EC DECLARED
             </td>
+            {% endif %}
+
+
+            {% if level == 2 %}
+            <td class="bold" align="center" valign="top">
+              TOTAL NUMBER OF SEATS WON
+            </td>
+            <td class="bold" align="center" valign="top">
+              EC SUMMARY SHEET
+            </td>
+            <td class="bold" align="center" valign="top">
+              VARIANCE
+            </td>
+            {% endif %}
+
+
             {% if regions is not None %}
             {% for region in regions %}
             <td align="center" align="center" valign="top"
@@ -94,9 +114,13 @@
               </td>
               {% endwith %}
               {% endwith %}
+
               <td name="percentage" align="center">
                 -
               </td>
+
+
+              {% if level == 4 %}
               <td align="center">
                 -
               </td>
@@ -109,6 +133,15 @@
               <td align="center">
                 -
               </td>
+              {% endif %}
+
+              {% if level == 2 %}
+              <td align="center">-</td>
+              <td align="center">-</td>
+              <td align="center">-</td>
+              {% endif %}
+
+
               {% if regions is not None %}
               {% for region in regions %}
               <td align="center">
@@ -139,11 +172,22 @@
             <td name="total-total-votes" class="bold" align="center"
               id="total-total-results--"
             >0</td>
+
             <td name="total-percentage" class="bold" align="center">0</td>
+
+            {% if level == 4 %}
             <td class="bold" align="center">0</td>
             <td class="bold" align="center">0</td>
             <td class="bold" align="center">0</td>
             <td class="bold" align="center">0</td>
+            {% endif %}
+
+            {% if level == 2 %}
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            <td class="bold" align="center">0</td>
+            {% endif %}
+
             {% if regions is not None %}
             {% for region in regions %}
             <td class="bold" align="center"

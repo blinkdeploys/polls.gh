@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% if user.is_authenticated %}
+{% block content %}
+{% load filtertags %}
+
+
+{% include '../report.html' with title=title zone=zone columns=columns reports=reports zone_type=zone_type sub_zone_type=sub_zone_type sub_zone_type_plural=sub_zone_type_plural sub_zone_link=sub_zone_link user=user only%}
+
+
+<script>
+calculateTotals()
+calculatePercentages()
+</script>
+{% endblock %}
+{% endif %}

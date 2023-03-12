@@ -81,7 +81,10 @@
               </td>
               {% with results=candidate|get_item:'results_total' %}
               {% with cell_value=results|sum:'votes' %}
-              <td name="total-votes" align="center" data-value="{% if cell_value > 0 %}{{ cell_value }}{% else %}0{% endif %}">
+              <td align="center"
+                  name="total-votes"
+                  data-value="{% if cell_value > 0 %}{{ cell_value }}{% else %}0{% endif %}"
+              >
                 {% if cell_value > 0 %}
                     <a href="#"
                         data-col="total-results--"

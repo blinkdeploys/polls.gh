@@ -1,1 +1,1 @@
-from .nation import nation_report, region_report, constituency_report
+from .nation import nation_report, region_report, constituency_report, nation_parliamentary_report, region_parliamentary_report, constituency_parliamentary_report, station_parliamentary_report
