@@ -15,6 +15,40 @@ ZONE_OPTIONS = models.Q(app_label='geo', model='Nation') | \
 # zone = GenericForeignKey('zone_ct', 'zone_id')
 
 
+# class PresidentialSummarySheet(models.Model):
+#     pass
+
+
+class ParliamentarySummarySheet(models.Model):
+    position = models.OneToOneField("poll.Position",
+                                on_delete=models.CASCADE,
+                                help_text=_("Position"),
+                                related_name='parliamentary_summary_sheet',
+                                default=True, null=True, blank=True)
+    candidate = models.OneToOneField("people.Candidate",
+                                  on_delete=models.CASCADE,
+                                  help_text=_("Candidate"),
+                                  default=None, null=True, blank=True,
+                                  related_name='parliamentary_summary_sheet')
+    constituency = models.OneToOneField("geo.Constituency",
+                                on_delete=models.CASCADE,
+                                help_text=_("Constituency"),
+                                default=None, null=True, blank=True,
+                                related_name='parliamentary_summary_sheet')
+    votes = models.IntegerField(_("Collation total number of valid votes"), help_text=_("Total number of votes"), null=True, blank=True)
+    total_votes = models.IntegerField(_("EC Summary Collation totals"), help_text=_("EC Collation number"), null=True, blank=True)
+    status = models.CharField(max_length=35, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)
+    created_at = models.DateTimeField("Created At", auto_now_add=True)
+    # TODO: To capture Variance with EC Summary
+
+    class Meta:
+        db_table = 'poll_parliamentary_summary_sheet'
+
+    def clean(self):
+        self.votes = intify(self.votes)
+        self.total_votes = intify(self.total_votes)
+
+
 class SupernationalCollationSheet(models.Model):
     party = models.ForeignKey("people.Party",
                                 on_delete=models.CASCADE,
