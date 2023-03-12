@@ -32,6 +32,9 @@ a, a:hover, a:visited, a:active {
 .td-warning {
     background-color:seashell !important;
 }
+.td-success {
+    background-color:azure !important;
+}
 .td-ok {
     background-color: aliceblue !important;
 }
