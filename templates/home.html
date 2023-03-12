@@ -7,12 +7,16 @@
 
   {% if user.is_authenticated %}
 
-    {% include 'layout/nav_grid.html' with user=user data=data only%}
+    <div class="container" style="width:850px; margin-left:auto; margin-right:auto;">
+      {% include 'layout/nav_grid.html' with user=user data=data only%}
+    </div>
 
   {% else %}
 
-    <p>You are not logged in</p>
-    <a href="{% url 'login' %}">Log In</a>
+    <div class="container mt-5" align="center">
+      <p>You are not logged in</p>
+      <a href="{% url 'login' %}">Log In</a>
+    </div>
 
   {% endif %}
 {% endblock %}
