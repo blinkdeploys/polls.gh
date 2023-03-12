@@ -28,7 +28,6 @@ def get_election_level(level):
         return (GeoLevelChoices.CONSTITUENCY, Constituency, 'Parliamentary', '_parliament')
     return (GeoLevelChoices.NATION, Nation, 'Presidential', '')
 
-
 def nation_report(request):
     level = GeoLevelChoices.NATIONAL
     level_model = Nation
@@ -128,7 +127,6 @@ def nation_report(request):
     )
     return render(request, template, context)
 
-
 def region_report(request, rpk=None):
     level = GeoLevelChoices.NATIONAL
     level_model = Nation
@@ -223,7 +221,6 @@ def region_report(request, rpk=None):
         prev_link='/poll/offices/?page=' + str(previous_page)
     )
     return render(request, template, context)
-
 
 def constituency_report(request, cpk=None):
     level = GeoLevelChoices.NATIONAL
@@ -378,7 +375,6 @@ def nation_parliamentary_report(request):
     except Exception as e:
         print("There was an error running raw query", e)
 
-
     context = dict(
         title=report_title,
         level=level,
@@ -389,8 +385,6 @@ def nation_parliamentary_report(request):
         sub_zone_type='region',
         sub_zone_type_plural='regions',
         sub_zone_link='/reports/parliamentary/region/',
-        # next_link='/poll/offices/?page=' + str(next_page),
-        # prev_link='/poll/offices/?page=' + str(previous_page)
     )
     return render(request, template, context)
 
@@ -432,20 +426,20 @@ def region_parliamentary_report(request, rpk=None):
         i += 1
 
     query = f'''SELECT
-        p.id, p.code,
-        SUM(ncs.total_votes) votes,
-        {sums}
-        '|' AS row_end
-    FROM {table} ncs
-        LEFT JOIN poll_party p ON p.id = ncs.party_id
-        LEFT JOIN geo_constituency c ON c.id = ncs.constituency_id
-        LEFT JOIN geo_region r ON r.id = c.region_id
-        {sum_joins}
-    WHERE
-        ncs.zone_ct_id = {zone_ct.pk}
-        AND r.id = {rpk}
-    GROUP BY p.id
-    ORDER BY p.code ASC;'''
+            p.id, p.code,
+            SUM(ncs.total_votes) votes,
+            {sums}
+            '|' AS row_end
+        FROM {table} ncs
+            LEFT JOIN poll_party p ON p.id = ncs.party_id
+            LEFT JOIN geo_constituency c ON c.id = ncs.constituency_id
+            LEFT JOIN geo_region r ON r.id = c.region_id
+            {sum_joins}
+        WHERE
+            ncs.zone_ct_id = {zone_ct.pk}
+            AND r.id = {rpk}
+        GROUP BY p.id
+        ORDER BY p.code ASC;'''
 
     reports = []
     cursor = connection.cursor()
@@ -457,7 +451,6 @@ def region_parliamentary_report(request, rpk=None):
     except Exception as e:
         print("There was an error running raw query", e)
 
-
     context = dict(
         title=report_title,
         level=level,
@@ -468,8 +461,6 @@ def region_parliamentary_report(request, rpk=None):
         zone_type='region',
         sub_zone_type='constituency',
         sub_zone_type_plural='constituencies',
-        # next_link='/poll/offices/?page=' + str(next_page),
-        # prev_link='/poll/offices/?page=' + str(previous_page)
     )
     return render(request, template, context)
 
@@ -480,13 +471,43 @@ def constituency_parliamentary_report(request, cpk=None):
     zone_ct = ContentType.objects.get_for_model(Constituency)
     constituency = Constituency.objects.filter(pk=cpk).first()
     columns = Station.objects.filter(constituency=constituency).order_by('code').all()
+    cursor = connection.cursor()
 
     sums = ''
     sum_joins = ''
     table = 'poll_constituency_collation_sheet'
     fields = [
-        'party_id', 'party_code', 'votes',
+        'party_id', 'party_code', 'votes', 'won', 'max_votes'
     ]
+
+
+    imax = 'max'
+    max_query = f'''SELECT
+            SUM(ncs{imax}.total_votes) sum_votes
+        FROM {table} ncs{imax}
+            LEFT JOIN poll_party p{imax} ON p{imax}.id = ncs{imax}.party_id
+            LEFT JOIN geo_station s{imax} ON s{imax}.id = ncs{imax}.station_id
+            LEFT JOIN geo_constituency c{imax} ON c{imax}.id = s{imax}.constituency_id
+            -- LEFT JOIN geo_region r ON r{imax}.id = c{imax}.region_id
+        WHERE
+            ncs{imax}.zone_ct_id = {zone_ct.pk}
+            AND c{imax}.id = {cpk}
+        GROUP BY p{imax}.id'''
+    max_votes = 0
+    try:
+        cursor.execute(max_query)
+        rows = cursor.fetchall()
+        max_votes = max(rows)[0]
+        print(':::::::::::::::::::::::::::::::::::::::::::::::')
+        print(rows)
+        print(':::::::::::::::::::::::::::::::::::::::::::::::')
+    except Exception as e:
+        print("There was an error running raw query", e)
+    # key = f'votes_max'
+    # sums += f' MAX(ncs{imax}.sum_votes) AS {key},'
+    # sum_joins += f''' LEFT JOIN ({max_query}) AS ncs{imax} ON ncs{imax}.station_id = ncs.station_id'''
+    # fields.append(key)
+
     i = 0
     for column in columns:
         key = f'votes_{snakeify(column.title)}'
@@ -511,9 +532,24 @@ def constituency_parliamentary_report(request, cpk=None):
         fields.append(key)
         i += 1
 
+    [(10,), (0,), (4,),
+     (1,), (2,), (1,),
+     (3,), (3,), (7,),
+     (6,), (1,), (6,),
+     (11,), (155,), (8,),
+     (23,), (7,), (7,),
+     (9,), (15,), (9,),
+     (8,), (10,), (9,),
+     (8,), (10,), (49,),
+     (39,), (90,), (7,)]
+
+
+
     query = f'''SELECT
         p.id, p.code,
         SUM(ncs.total_votes) votes,
+        (CASE WHEN (SUM(ncs.total_votes) = {max_votes} AND SUM(ncs.total_votes) > 0) THEN 1 ELSE 0 END) won,
+        '{max_votes}' AS max_votes,
         {sums}
         '|' AS row_end
     FROM {table} ncs
@@ -529,7 +565,6 @@ def constituency_parliamentary_report(request, cpk=None):
     ORDER BY p.code ASC;'''
 
     reports = []
-    cursor = connection.cursor()
     try:
         cursor.execute(query)
         rows = cursor.fetchall()
@@ -537,7 +572,6 @@ def constituency_parliamentary_report(request, cpk=None):
             reports.append(dict(zip(fields, row)))
     except Exception as e:
         print("There was an error running raw query", e)
-
 
     context = dict(
         title=report_title,
@@ -548,8 +582,7 @@ def constituency_parliamentary_report(request, cpk=None):
         sub_zone_link='/reports/parliamentary/station/',
         zone_type='constituency',
         sub_zone_type='station',
-        # next_link='/poll/offices/?page=' + str(next_page),
-        # prev_link='/poll/offices/?page=' + str(previous_page)
+        sub_zone_type_plural='stations',
     )
     return render(request, template, context)
 
@@ -635,178 +668,14 @@ def station_parliamentary_report(request, spk=None):
         sub_zone_link='#',
         zone_type='station',
         sub_zone_type=None,
-        # next_link='/poll/offices/?page=' + str(next_page),
-        # prev_link='/poll/offices/?page=' + str(previous_page)
     )
     return render(request, template, context)
 
 
 
-def nation_parliamentary_report_2(request):
-    level = GeoLevelChoices.CONSTITUENCY
-    level_model = Constituency
-    report_title = f'National Parliamentary Collation Results'
-    template = f'report/parliamentary/nation_report.html'
-    next_page = 1
-    previous_page = 1
-    parties = Party.objects.all()
-    nation = Nation.objects.first()
-    regions = nation.regions.all()
 
 
-    '''
-    positions = Position.objects.filter(
-        zone_ct=ContentType.objects.get_for_model(Constituency)
-    ).all()
-    parties = Party.objects.prefetch_related(
-        Prefetch(
-            'candidates',
-            queryset=Candidate.objects.filter(
-                position__in=positions
-            ).prefetch_related('results').all(),
-            to_attr='party_candidates'
-        )
-    ).all()
-
-    totals = dict()
-    for party in parties:
-        for candidate in party.candidates.all():
-            for result in candidate.results.all():
-                print(':::::::::::::::::::::::')
-                if totals.get(party.code, None) is None:
-                    totals[party.code] = dict()
-                totals[party.code]['votes']
-                totals[party.code]['votes']
-                print(
-                    result.votes, result.candidate,
-                    result.result_sheet.station.title)
-        totals.append(total)
-
-    print(':::::::::::::::::::::::')
-    '''
-    query = '''SELECT
-            p.id, p.code, p.title,
-            COUNT(c.id) candidates,
-            COUNT(r.id) results,
-            COUNT(rs.id) result_sheets,
-            SUM(r.votes) votes
-        FROM poll_party p
-            LEFT JOIN people_candidate c ON c.party_id = p.id
-            LEFT JOIN poll_result r ON r.candidate_id = c.id
-            LEFT JOIN poll_position po ON po.id = c.position_id AND po.zone_ct_id = '9'
-            LEFT JOIN poll_result_sheet rs ON rs.position_id = c.position_id AND r.result_sheet_id = rs.id
-        GROUP BY p.id;'''
-
-
-    query = '''SELECT
-    p.id, p.code, p.title,
-    COUNT(c.id) candidates,
-    COUNT(rs.id) result_sheets,
-    COUNT(r.id) results,
-    SUM(r.votes) votes
-FROM poll_party p
-    LEFT JOIN people_candidate c ON c.party_id = p.id
-    LEFT JOIN poll_position po ON po.id = c.position_id
-    LEFT JOIN poll_result_sheet rs ON rs.position_id = po.id AND rs.position_id = c.position_id
-    LEFT JOIN poll_result r ON r.result_sheet_id = rs.id AND r.candidate_id = c.id
-    LEFT JOIN geo_station s ON s.id = rs.station_id AND s.id = r.station_id
-WHERE
-    po.zone_ct_id = '9'
-    AND po.id = '1639'
-    AND s.id = '1'
-    -- AND po.zone_id = '48'
-GROUP BY p.id
-ORDER BY votes DESC
-;
-    '''
-
-
-    
-
-
-
-
-    '''
-    candidate_qs = Candidate.objects.all() \
-                            .prefetch_related(
-                                Prefetch(
-                                    'results',
-                                    queryset=Result.objects.all(),
-                                    to_attr="results_total"
-                                )
-                            )
-
-    national_positions = Position.objects \
-                                .filter(zone_ct=ContentType.objects.get_for_model(level_model)) \
-                                .prefetch_related(
-                                    Prefetch(
-                                        'candidates',
-                                        to_attr='position_candidates',
-                                        queryset=candidate_qs
-                                    )
-                                )
-    candidates = None
-    for national_position in national_positions:
-        position_candidates = national_position.candidates.all() \
-                                    .prefetch_related(
-                                        Prefetch(
-                                            'results',
-                                            queryset=Result.objects.filter(
-                                                station__in=Station.objects.filter(
-                                                    constituency__in=Constituency.objects.filter(
-                                                        region__in=regions
-                                                    ).all()
-                                                ).all()
-                                            ).all(),
-                                            to_attr="results_total"
-                                        )
-                                    )
-        for region in regions:
-            region_lookup = snakeify(region.title)
-            region_lookup = f'results_{region_lookup}'
-            # print(region_lookup)
-            position_candidates = position_candidates \
-                                    .prefetch_related(
-                                        Prefetch(
-                                            'results',
-                                            queryset=Result.objects.filter(
-                                                station__in=Station.objects \
-                                                                .filter(
-                                                                        constituency__in=Constituency.objects \
-                                                                            .filter(region=region))
-                                            ).all(),
-                                            to_attr=f"{region_lookup}"
-                                        )
-                                    )
-
-        if candidates is None:
-            candidates = position_candidates
-        else:
-            candidates = list(chain(candidates, position_candidates))
-        
-
-    print(':::::::::::::::::::::::::::::')
-
-    candidate_lists = []
-    for candidate in candidates:
-        candidate_list = dict()
-        candidate_list['pk'] = candidate.pk
-        candidate_list['full_name'] = candidate.full_name
-        candidate_list['votes'] = candidate.votes
-        candidate_list['party'] = candidate.party
-        candidate_list['position'] = candidate.position
-        for k, v in candidate.__dict__.items():
-            if 'results_' in k:
-                candidate_list[k] = v
-        candidate_lists.append(candidate_list)
-
-        print(candidate_list)
-        print('::::::::::::::::::::::::::')
-    '''
-
-
-
-
+def raw_query(request):
     
     cursor = connection.cursor()
     zone_ct = ContentType.objects.get_for_model(Constituency)
@@ -821,8 +690,6 @@ ORDER BY votes DESC
     columns = stations
 
     group_by = 'c.id, p.id'
-    # if collapse to party
-        # group_by = 'p.id'
 
     cid = 1
     constituency = Constituency.objects.filter(pk=cid).first()
@@ -911,9 +778,6 @@ ORDER BY votes DESC
             -- LIMIT 500
             ;'''
 
-    # print("*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*")
-    # print("*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*")
-    # print("*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*")
     reports = []
     try:
         cursor.execute(query)
@@ -922,317 +786,5 @@ ORDER BY votes DESC
             reports.append(dict(zip(fields, row)))
     except Exception as e:
         print("There was an error running raw query", e)
-    # print("*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*")
-    # print("*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*")
-    # print("*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*:*")
-
-    # from pprint import pprint
-    # pprint(report)
 
 
-    context = dict(
-        title=report_title,
-        level=level,
-        nation=nation,
-        regions=regions,
-        parties=parties,
-
-        reports=reports,
-        columns=columns,
-
-        # candidates=candidate_lists,
-        next_link='/poll/offices/?page=' + str(next_page),
-        prev_link='/poll/offices/?page=' + str(previous_page)
-    )
-    return render(request, template, context)
-
-def region_parliamentary_report_2(request, rpk=None):
-    level = GeoLevelChoices.CONSTITUENCY
-    level_model = Constituency
-    report_title = f'Regional Parliamentary Collation Results'
-    template = f'report/parliamentary/region_report.html'
-    next_page = 1
-    previous_page = 1
-    parties = Party.objects.all()
-    region = Region.objects.filter(pk=rpk).first()
-    constituencies = region.constituencies.all()
-    
-    candidate_qs = Candidate.objects.all() \
-                            .prefetch_related(
-                                Prefetch(
-                                    'results',
-                                    queryset=Result.objects.all(),
-                                    to_attr="results_total"
-                                )
-                            )
-
-    national_positions = Position.objects \
-                                .filter(
-                                    zone_ct=ContentType.objects.get_for_model(level_model),
-                                    zone_id__in=constituencies
-                                ) \
-                                .prefetch_related(
-                                    Prefetch(
-                                        'candidates',
-                                        to_attr='position_candidates',
-                                        queryset=candidate_qs
-                                    )
-                                )
-    candidates = None
-    for national_position in national_positions:
-        position_candidates = national_position.candidates.all() \
-                                    .prefetch_related(
-                                        Prefetch(
-                                            'results',
-                                            queryset=Result.objects.filter(
-                                                station__in=Station.objects.filter(
-                                                    constituency__in=constituencies
-                                                ).all()
-                                            ).all(),
-                                            to_attr="results_total"
-                                        )
-                                    )
-        for constituency in constituencies:
-            constituency_lookup = snakeify(constituency.title)
-            constituency_lookup = f'results_{constituency_lookup}'
-            position_candidates = position_candidates \
-                                    .prefetch_related(
-                                        Prefetch(
-                                            'results',
-                                            queryset=Result.objects.filter(
-                                                                        station__in=Station.objects \
-                                                                                        .filter(constituency=constituency)
-                                                                    ).all(),
-                                            to_attr=f"{constituency_lookup}"
-                                        )
-                                    )
-
-        if candidates is None:
-            candidates = position_candidates
-        else:
-            candidates = list(chain(candidates, position_candidates))
-        
-    print(':::::::::::::::::::::::::::::')
-
-    candidate_lists = []
-    for candidate in candidates:
-        candidate_list = dict()
-        candidate_list['pk'] = candidate.pk
-        candidate_list['full_name'] = candidate.full_name
-        candidate_list['votes'] = candidate.votes
-        candidate_list['party'] = candidate.party
-        candidate_list['position'] = candidate.position
-        candidate_list['position_title'] = candidate.position.title
-        candidate_list['position_id'] = candidate.position.pk
-        for k, v in candidate.__dict__.items():
-            if 'results_' in k:
-                candidate_list[k] = v
-        candidate_lists.append(candidate_list)
-
-        print(candidate_list)
-        print('::::::::::::::::::::::::::')
-
-
-    context = dict(
-        title=report_title,
-        level=level,
-        region=region,
-        constituencies=constituencies,
-        parties=parties,
-        candidates=candidate_lists,
-        next_link='/poll/offices/?page=' + str(next_page),
-        prev_link='/poll/offices/?page=' + str(previous_page)
-    )
-    return render(request, template, context)
-
-def constituency_parliamentary_report_2(request, cpk=None):
-    level = GeoLevelChoices.CONSTITUENCY
-    level_model = Constituency
-    report_title = f'Constituency Parliamentary Collation Results'
-    template = f'report/parliamentary/constituency_report.html'
-    next_page = 1
-    previous_page = 1
-    candidate_lists = []
-    parties = []
-    constituency = None
-    stations = []
-
-    # try:
-    parties = Party.objects.all()
-    constituency = Constituency.objects.filter(pk=cpk).first()
-    stations = constituency.stations.all()
-    
-    candidate_qs = Candidate.objects.all() \
-                            .prefetch_related(
-                                Prefetch(
-                                    'results',
-                                    queryset=Result.objects.filter(
-                                        station__in=stations
-                                    ).all(),
-                                    to_attr="results_total"
-                                )
-                            )
-
-    national_positions = Position.objects \
-                                .filter(
-                                    zone_ct=ContentType.objects.get_for_model(level_model),
-                                    zone_id=constituency.pk
-                                ) \
-                                .prefetch_related(
-                                    Prefetch(
-                                        'candidates',
-                                        to_attr='position_candidates',
-                                        queryset=candidate_qs
-                                    )
-                                )
-
-    # print(":::::::::::::::::::::::::::::")
-    # print(national_positions.count())
-    # print(":::::::::::::::::::::::::::::")
-
-    candidates = []
-    for position in national_positions:
-        position_candidates = position.candidates.all() \
-                                    .prefetch_related(
-                                        Prefetch(
-                                            'results',
-                                            queryset=Result.objects \
-                                                    .filter(station__in=stations) \
-                                                    .all(),
-                                            to_attr="results_total"
-                                        )
-                                    )
-        print(":::::::::::::::::::::::::::::")
-        print(position_candidates.count())
-        print(":::::::::::::::::::::::::::::")
-
-        for candidate in position_candidates:
-            candidate_dict = dict(
-                pk=candidate.pk,
-                full_name=candidate.full_name,
-                position_id=position.pk,
-                position_title=position.title,
-                votes=candidate.votes,
-                party=candidate.party,
-                position=candidate.position,
-            )
-            candidates.append(candidate_dict)
-
-        for station in stations:
-            station_lookup = snakeify(station.code)
-            station_lookup = f'results_{station_lookup}'
-            position_candidates = position_candidates \
-                                    .prefetch_related(
-                                        Prefetch(
-                                            'results',
-                                            queryset=Result.objects \
-                                                            .filter(station=station) \
-                                                            .all(),
-                                            to_attr=f"{station_lookup}"
-                                        )
-                                    )
-            print(position_candidates.count())
-            c = 0
-            for candidate in position_candidates:
-                for k, v in candidate.__dict__.items():
-                    if 'results_' in k:
-                        print(k, '======>', v)
-                        total = candidate_dict.get(k, 0)
-                        candidates[c][k] = v if total == 0 else total + v
-                c += 1
-
-
-    print(':::::::::::::::::::::::::::::')
-
-
-    # except Exception as e:
-    #     print('There was an error fetching records', e)
-
-
-    context = dict(
-        title=report_title,
-        level=level,
-        constituency=constituency,
-        stations=stations,
-        parties=parties,
-        candidates=candidates,
-        next_link='/poll/offices/?page=' + str(next_page),
-        prev_link='/poll/offices/?page=' + str(previous_page)
-    )
-    return render(request, template, context)
-
-def station_parliamentary_report_2(request, spk=None):
-    level = GeoLevelChoices.CONSTITUENCY
-    level_model = Constituency
-    report_title = f'Polling Station Parliamentary Collation Results'
-    template = f'report/parliamentary/station_report.html'
-
-
-    '''
-    next_page = 1
-    previous_page = 1
-    candidates = []
-    parties = Party.objects.all()
-    station = Station.objects.filter(pk=spk).first()
-    # stations = constituency.stations.all()
-    
-    candidate_qs = Candidate.objects.all() \
-                            .prefetch_related(
-                                Prefetch(
-                                    'results',
-                                    queryset=Result.objects \
-                                            .filter(station=station) \
-                                            .all(),
-                                    to_attr="results_total"
-                                )
-                            )
-
-    positions = Position.objects \
-                        .filter(
-                            zone_ct=ContentType.objects.get_for_model(level_model),
-                            zone_id=station.constituency.pk
-                        ) \
-                        .prefetch_related(
-                            Prefetch(
-                                'candidates',
-                                to_attr='position_candidates',
-                                queryset=candidate_qs
-                            )
-                        )
-
-    print(':::::::::::::::::::::::::::::')
-
-    for position in positions:
-        position_candidates = position.candidates.all()
-        for candidate in position_candidates:
-            candidate_dict = dict(
-                pk=candidate.pk,
-                position_id=position.pk,
-                position_title=position.title,
-                full_name=candidate.full_name,
-                votes=candidate.votes,
-                party=candidate.party,
-                position=candidate.position
-            )
-            for k, v in candidate.__dict__.items():
-                if 'results_' in k:
-                    print(k, '======>', v)
-                    candidate_dict[k] = v
-            candidates.append(candidate_dict)
-    '''
-
-
-
-
-
-
-    context = dict(
-        title=report_title,
-        level=level,
-        station=station,
-        # parties=parties,
-        # candidates=candidates,
-        # next_link='/poll/offices/?page=' + str(next_page),
-        # prev_link='/poll/offices/?page=' + str(previous_page)
-    )
-    return render(request, template, context)

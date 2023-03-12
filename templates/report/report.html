@@ -23,15 +23,21 @@
       <table class="table">
         <thead>
           <tr>
-            <td class="bold td-sticky" valign="top">
+            <td class="td-sticky">
               <div class="row">
                 <div class="col-1">
                   <i class="fa fa-regular fa-circle"></i>
                 </div>
-                <div class="col bold">
-                  CANDIDATE / PARTY
+                <div class="col">
+                  PARTY / CANDIDATE
                 </div>
               </div>
+            </td>
+            <td align="center">
+                SEATS
+            </td>
+            <td align="center">
+                MAX. VOTES
             </td>
             <td align="right">
               PERCENTAGE (%)
@@ -75,11 +81,11 @@
                   {% if report.party_code is not None %}{{ report.party_code }}{% endif %}
                   {% if report.candidate_name is not None %}{{ report.candidate_name }}{% endif %}
                 </div>
-            </div>
+              </div>
             </td>
-            <td name="percentage" align="right">
-              -
-            </td>
+            <td align="center">{% if report.won > 0 %}{{ report.won }}{% else %}-{% endif %}</td>
+            <td align="center">{{ report.max_votes }}</td>
+            <td name="percentage" align="right">-</td>
             <td align="right" class="td-ok"
               name="total-votes" data-col="total-results--"
               data-value="{% if report.votes > 0 %}{{ report.votes }}{% else %}0{% endif %}"
@@ -126,6 +132,8 @@
                 </div>
               </div>
             </td>
+            <td align="center">-</td>
+            <td align="center">-</td>
             <td name="total-percentage" class="bold" align="right">-</td>
             <td name="total-total-votes" class="bold td-ok" align="right"
               id="total-total-results--"
@@ -152,16 +160,17 @@
                 </div>
               </div>
             </td>
+            <td align="center">-</td>
+            <td align="center">-</td>
             <td class="bold" align="right">0</td>
             <td class="bold td-ok" align="right">0</td>
             {% if sub_zone_type is not None %}
             <td align="right" class="td-warning">-</td>
             <td align="right" class="td-alert">-</td>
             {% if columns is not None %}
-            {% for column in columns %}
-            <td class="bold" align="right"
-            >0</td>
-            {% endfor %}
+              {% for column in columns %}
+                <td class="bold" align="right">0</td>
+              {% endfor %}
             {% endif %}
             {% endif %}
           </tr>
@@ -175,6 +184,8 @@
                 </div>
               </div>
             </td>
+            <td align="center">-</td>
+            <td align="center">-</td>
             <td class="bold" align="right">0</td>
             <td class="bold td-ok" align="right">0</td>
             {% if sub_zone_type is not None %}
