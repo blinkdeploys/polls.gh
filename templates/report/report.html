@@ -11,6 +11,7 @@
         {% if sub_zone_type is not None %}
             ({{ columns|count }} {% if sub_zone_type_plural is None %}{{ sub_zone_type }}s{% else %}{{ sub_zone_type_plural }}{% endif %})
         {% endif %}
+        {% if super_zone is not None %}<div><a href="{{ super_zone_link }}{{ super_zone.pk }}">{{ super_zone.title }}</a></div>{% endif %}
       </div>
     </div>
     <div class="col">
@@ -33,12 +34,14 @@
                 </div>
               </div>
             </td>
+            {% if sub_zone_type is not None %}
             <td align="center">
                 SEATS
             </td>
             <td align="center">
                 MAX. VOTES
             </td>
+            {% endif %}
             <td align="right">
               PERCENTAGE (%)
             </td>
@@ -83,8 +86,10 @@
                 </div>
               </div>
             </td>
+            {% if sub_zone_type is not None %}
             <td align="center">{% if report.won > 0 %}{{ report.won }}{% else %}-{% endif %}</td>
             <td align="center">{{ report.max_votes }}</td>
+            {% endif %}
             <td name="percentage" align="right">-</td>
             <td align="right" class="td-ok"
               name="total-votes" data-col="total-results--"
@@ -132,8 +137,10 @@
                 </div>
               </div>
             </td>
+            {% if sub_zone_type is not None %}
             <td align="center">-</td>
             <td align="center">-</td>
+            {% endif %}
             <td name="total-percentage" class="bold" align="right">-</td>
             <td name="total-total-votes" class="bold td-ok" align="right"
               id="total-total-results--"
@@ -160,8 +167,10 @@
                 </div>
               </div>
             </td>
+            {% if sub_zone_type is not None %}
             <td align="center">-</td>
             <td align="center">-</td>
+            {% endif %}
             <td class="bold" align="right">0</td>
             <td class="bold td-ok" align="right">0</td>
             {% if sub_zone_type is not None %}
@@ -184,8 +193,10 @@
                 </div>
               </div>
             </td>
+            {% if sub_zone_type is not None %}
             <td align="center">-</td>
             <td align="center">-</td>
+            {% endif %}
             <td class="bold" align="right">0</td>
             <td class="bold td-ok" align="right">0</td>
             {% if sub_zone_type is not None %}

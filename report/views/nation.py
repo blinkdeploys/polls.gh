@@ -384,6 +384,8 @@ def nation_parliamentary_report(request):
         zone_type='nation',
         sub_zone_type='region',
         sub_zone_type_plural='regions',
+        super_zone=None,
+        super_zone_link='#',
         sub_zone_link='/reports/parliamentary/region/',
     )
     return render(request, template, context)
@@ -457,10 +459,12 @@ def region_parliamentary_report(request, rpk=None):
         columns=columns,
         reports=reports,
         zone=region,
-        sub_zone_link='/reports/parliamentary/constituency/',
         zone_type='region',
         sub_zone_type='constituency',
         sub_zone_type_plural='constituencies',
+        super_zone=region.nation,
+        super_zone_link='/reports/parliamentary/nation/',
+        sub_zone_link='/reports/parliamentary/constituency/',
     )
     return render(request, template, context)
 
@@ -532,19 +536,6 @@ def constituency_parliamentary_report(request, cpk=None):
         fields.append(key)
         i += 1
 
-    [(10,), (0,), (4,),
-     (1,), (2,), (1,),
-     (3,), (3,), (7,),
-     (6,), (1,), (6,),
-     (11,), (155,), (8,),
-     (23,), (7,), (7,),
-     (9,), (15,), (9,),
-     (8,), (10,), (9,),
-     (8,), (10,), (49,),
-     (39,), (90,), (7,)]
-
-
-
     query = f'''SELECT
         p.id, p.code,
         SUM(ncs.total_votes) votes,
@@ -579,10 +570,12 @@ def constituency_parliamentary_report(request, cpk=None):
         columns=columns,
         reports=reports,
         zone=constituency,
-        sub_zone_link='/reports/parliamentary/station/',
         zone_type='constituency',
         sub_zone_type='station',
         sub_zone_type_plural='stations',
+        super_zone=constituency.region,
+        super_zone_link='/reports/parliamentary/region/',
+        sub_zone_link='/reports/parliamentary/station/',
     )
     return render(request, template, context)
 
@@ -665,9 +658,11 @@ def station_parliamentary_report(request, spk=None):
         columns=columns,
         reports=reports,
         zone=station,
-        sub_zone_link='#',
         zone_type='station',
         sub_zone_type=None,
+        super_zone=station.constituency,
+        super_zone_link='/reports/parliamentary/constituency/',
+        sub_zone_link='#',
     )
     return render(request, template, context)
 
