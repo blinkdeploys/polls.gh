@@ -4,7 +4,9 @@ from django.core.management.base import BaseCommand, CommandError
 from poll.models import (
     Event, Office, Position, ResultSheet, Result, ResultApproval,
     SupernationalCollationSheet, NationalCollationSheet, RegionalCollationSheet,
-    ConstituencyCollationSheet, StationCollationSheet
+    ConstituencyCollationSheet, StationCollationSheet,
+    ParliamentarySummarySheet,
+    # PresidentialSummarySheet
 )
 from people.models import (Agent, Party, Candidate)
 from geo.models import (Nation, Region, Constituency, Station)
@@ -213,6 +215,60 @@ class Command(BaseCommand):
             collated += 1
         total += collated
         self.stdout.write(self.style.SUCCESS(f'Supernational collation completed. {collated} records transfered!'))
+        print(':::::::::::::::::::::::::::::::::::::::::::')
+
+        # count the number of parliamentary seats won
+        # clear summary sheet
+        ParliamentarySummarySheet.objects.all().delete()
+        zone_ct = ContentType.objects.get_for_model(Constituency)
+        # get all parliamentary positons
+        parliamentary_positions = Position.objects.filter(zone_ct=zone_ct).all()
+        # get all the canididates for parliamentary positons
+        parliamentary_candidates = Candidate.objects.filter(position__in=parliamentary_positions).all()
+        # get all results for parliamentary candidates
+        results = Result.objects.filter(candidate__in=parliamentary_candidates).all()
+        collations = dict()
+        for result in results:
+            pos_id = result.candidate.position.pk
+            can_id = result.candidate.pk
+            # extract voting data for position and candidate
+            position_collation = collations.get(pos_id, dict())
+            votes = position_collation.get(can_id, 0)
+            votes += intify(result.votes)
+            position_collation[can_id] = votes
+            collations[pos_id] = position_collation
+        # parse throught the collation sheets
+        for kp, position_collations in collations.items():
+            max_votes = 0
+            total_votes = 0
+            max_candidate = None
+            for kc, v in position_collations.items():
+                # print(kc, kp, v)
+                total_votes += v
+                if max_votes < v:
+                    max_votes = v
+                    max_candidate = kc
+            # print(max_votes, max_candidate)
+            winning_candidate = Candidate.objects.filter(pk=max_candidate).first()
+            position = Position.objects.filter(pk=kp, zone_ct=zone_ct).first()
+            constituency = Constituency.objects.filter(pk=position.zone_id).first()
+            # create a record for every seat won
+            summary, _ = ParliamentarySummarySheet.objects.update_or_create(
+                position=position,
+                defaults=dict(
+                    candidate=winning_candidate,
+                    constituency=constituency,
+                    votes=max_votes,
+                    total_votes=total_votes,
+                )
+            )
+            # TODO: To save variances with invalid votes
+            print('\t:::::::::::::::::::::::::::::::::::::::::::')
+            print(f'\tPosition: {TerminalColors.OKBLUE}{position}{TerminalColors.ENDC}')
+            print(f'\tConstituency: {TerminalColors.OKBLUE}{constituency}{TerminalColors.ENDC}')
+            print(f'\tWinning candidate {TerminalColors.OKBLUE}{winning_candidate}{TerminalColors.ENDC}')
+            print(f'\tVotes: {TerminalColors.OKBLUE}{max_votes}{TerminalColors.ENDC}')
+
         print(':::::::::::::::::::::::::::::::::::::::::::')
 
         self.stdout.write(self.style.SUCCESS(f'Collation completed! {total} total records collated.'))
