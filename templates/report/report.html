@@ -45,7 +45,7 @@
             <td align="right">
               PERCENTAGE (%)
             </td>
-            <td align="right" class="td-ok"
+            <td align="right" class="{% if report.seats > 0 %}td-success{% else %}td-ok{% endif %}"
               name="sum-columns" data-target="total-results--"
             >
               TOTAL VOTES
@@ -87,10 +87,10 @@
               </div>
             </td>
             {% if sub_zone_type is not None %}
-            <td align="center" class="{% if report.won > 0 %}td-ok{% endif %}">{% if report.won > 0 %}{{ report.won }}{% else %}-{% endif %}</td>
-            <td align="center" class="{% if report.won > 0 %}td-ok{% endif %}">{% if report.max_votes is not None %}{{ report.max_votes }}{% else %}-{% endif %}</td>
+            <td align="center" class="{% if report.seats > 0 %}td-success{% endif %}">{% if report.seats > 0 %}{{ report.seats }}{% else %}-{% endif %}</td>
+            <td align="center" class="{% if report.seats > 0 %}td-success{% endif %}">{% if report.max_votes is not None %}{{ report.max_votes }}{% else %}-{% endif %}</td>
             {% endif %}
-            <td name="percentage" class="{% if report.won > 0 %}td-ok{% endif %}" align="right">-</td>
+            <td name="percentage" class="{% if report.seats > 0 %}td-success{% endif %}" align="right">-</td>
             <td align="right" class="td-ok"
               name="total-votes" data-col="total-results--"
               data-value="{% if report.votes > 0 %}{{ report.votes }}{% else %}0{% endif %}"
@@ -98,14 +98,14 @@
               {{ report.votes }}
             </td>
             {% if sub_zone_type is not None %}
-            <td align="right" class="{% if report.won > 0 %}td-ok{% else %}td-warning{% endif %}">-</td>
-            <td align="right" class="{% if report.won > 0 %}td-ok{% else %}td-alert{% endif %}">-</td>
+            <td align="right" class="{% if report.seats > 0 %}td-success{% else %}td-warning{% endif %}">-</td>
+            <td align="right" class="{% if report.seats > 0 %}td-success{% else %}td-alert{% endif %}">-</td>
             {% if columns is not None %}
             {% for column in columns %}
             {% with key='votes_'|add:column.title|make_snake %}
             {% with cell_value=report|get_item:key %}
             <td
-              class="{% if report.won > 0 %}td-ok{% endif %}"
+              class="{% if report.seats > 0 %}td-success{% endif %}"
               align="right"
               name="total-votes-{{ column.pk }}"
               data-value="{% if cell_value > 0 %}{{ cell_value }}{% else %}0{% endif %}"

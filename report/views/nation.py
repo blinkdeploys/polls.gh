@@ -18,7 +18,8 @@ from django.db import connection
 from poll.models import (
     Event, Office, Position, ResultSheet, Result, ResultApproval,
     SupernationalCollationSheet, NationalCollationSheet, RegionalCollationSheet,
-    ConstituencyCollationSheet, StationCollationSheet
+    ConstituencyCollationSheet, StationCollationSheet,
+    ParliamentarySummarySheet
 )
 
 
@@ -327,8 +328,9 @@ def nation_parliamentary_report(request):
     sums = ''
     sum_joins = ''
     table = 'poll_national_collation_sheet'
+    summary_table = 'poll_parliamentary_summary_sheet'
     fields = [
-        'party_id', 'party_code', 'votes',
+        'party_id', 'party_code', 'votes', 'seats',
     ]
     i = 0
     for column in columns:
@@ -354,11 +356,25 @@ def nation_parliamentary_report(request):
     query = f'''SELECT
         p.id, p.code,
         SUM(ncs.total_votes) votes,
+        COUNT(summ.id) seats,
         {sums}
         '|' AS row_end
     FROM {table} ncs
         LEFT JOIN poll_party p ON p.id = ncs.party_id
         LEFT JOIN geo_region r ON r.id = ncs.region_id
+
+        LEFT JOIN {summary_table} summ ON
+            summ.constituency_id IN (
+                SELECT c.id
+                    FROM geo_constituency c
+                    WHERE c.region_id = r.id
+            )
+            AND summ.candidate_id IN (
+                SELECT ca.id
+                    FROM people_candidate ca
+                    WHERE ca.party_id = p.id
+            )
+
         {sum_joins}
     WHERE
         ncs.zone_ct_id = {zone_ct.pk}
@@ -397,13 +413,17 @@ def region_parliamentary_report(request, rpk=None):
     zone_ct = ContentType.objects.get_for_model(Constituency)
     region = Region.objects.filter(pk=rpk).first()
     columns = Constituency.objects.filter(region=region).order_by('title').all()
+    cursor = connection.cursor()
 
     sums = ''
     sum_joins = ''
     table = 'poll_regional_collation_sheet'
+    summary_table = 'poll_parliamentary_summary_sheet'
     fields = [
         'party_id', 'party_code', 'votes',
+        'seats',
     ]
+
     i = 0
     for column in columns:
         key = f'votes_{snakeify(column.title)}'
@@ -430,12 +450,24 @@ def region_parliamentary_report(request, rpk=None):
     query = f'''SELECT
             p.id, p.code,
             SUM(ncs.total_votes) votes,
+            COUNT(summ.id) seats,
             {sums}
             '|' AS row_end
         FROM {table} ncs
+
             LEFT JOIN poll_party p ON p.id = ncs.party_id
             LEFT JOIN geo_constituency c ON c.id = ncs.constituency_id
             LEFT JOIN geo_region r ON r.id = c.region_id
+
+            LEFT JOIN {summary_table} summ ON
+                summ.constituency_id = c.id
+                AND summ.constituency_id = ncs.constituency_id
+                AND summ.candidate_id IN (
+                    SELECT ca.id
+                    FROM people_candidate ca
+                    WHERE ca.party_id = p.id
+                )
+
             {sum_joins}
         WHERE
             ncs.zone_ct_id = {zone_ct.pk}
@@ -444,7 +476,6 @@ def region_parliamentary_report(request, rpk=None):
         ORDER BY p.code ASC;'''
 
     reports = []
-    cursor = connection.cursor()
     try:
         cursor.execute(query)
         rows = cursor.fetchall()
@@ -480,8 +511,9 @@ def constituency_parliamentary_report(request, cpk=None):
     sums = ''
     sum_joins = ''
     table = 'poll_constituency_collation_sheet'
+    summary_table = 'poll_parliamentary_summary_sheet'
     fields = [
-        'party_id', 'party_code', 'votes', 'won', 'max_votes'
+        'party_id', 'party_code', 'votes', 'seats', 'max_votes'
     ]
 
 
@@ -539,7 +571,8 @@ def constituency_parliamentary_report(request, cpk=None):
     query = f'''SELECT
         p.id, p.code,
         SUM(ncs.total_votes) votes,
-        (CASE WHEN (SUM(ncs.total_votes) = {max_votes} AND SUM(ncs.total_votes) > 0) THEN 1 ELSE 0 END) won,
+        COUNT(summ.id) seats,
+        -- (CASE WHEN (SUM(ncs.total_votes) = {max_votes} AND SUM(ncs.total_votes) > 0) THEN 1 ELSE 0 END) seats,
         '{max_votes}' AS max_votes,
         {sums}
         '|' AS row_end
@@ -548,6 +581,16 @@ def constituency_parliamentary_report(request, cpk=None):
         LEFT JOIN geo_station s ON s.id = ncs.station_id
         LEFT JOIN geo_constituency c ON c.id = s.constituency_id
         LEFT JOIN geo_region r ON r.id = c.region_id
+
+        LEFT JOIN {summary_table} summ ON
+            summ.constituency_id = c.id
+            AND summ.constituency_id = s.constituency_id
+            AND summ.candidate_id IN (
+                SELECT ca.id
+                    FROM people_candidate ca
+                    WHERE ca.party_id = p.id
+            )
+
         {sum_joins}
     WHERE
         ncs.zone_ct_id = {zone_ct.pk}
@@ -679,7 +722,7 @@ def raw_query(request):
     sum_joins = ''
     stations = Station.objects.all()[100:200]
     fields = ['pk', 'party_code', 'party_title',
-              'candidate', 'won', 'result_sheets',
+              'candidate', 'seats', 'result_sheets',
               'results', 'results_total', 'max_result']
     i = 0
     columns = stations
@@ -740,7 +783,7 @@ def raw_query(request):
     query = f'''SELECT
                 p.id, p.code, p.title,
                 CONCAT(c.prefix, c.first_name, ' ', c.last_name),
-                (CASE WHEN (SUM(r.votes) > 0 AND SUM(r.votes) = MAX(r{append}.total_votes)) THEN 1 ELSE 0 END) won,
+                (CASE WHEN (SUM(r.votes) > 0 AND SUM(r.votes) = MAX(r{append}.total_votes)) THEN 1 ELSE 0 END) seats,
 
                 COUNT(rs.id) result_sheets,
                 COUNT(r.id) results,
@@ -768,7 +811,7 @@ def raw_query(request):
                 AND po{i}.id = '{position.pk}'
                 -- AND s.constituency_id = '258'
             GROUP BY {group_by}
-            ORDER BY won DESC, votes DESC
+            ORDER BY seats DESC, votes DESC
                 -- , p.id ASC
             -- LIMIT 500
             ;'''
