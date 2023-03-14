@@ -96,33 +96,44 @@ def dequeue_collation(request, jid=None):
 
     job = None
     try:
-        job = Job.fetch(job_id, redis_conn) # fetch Job from redis
+        # fetch Job from redis
+        job = Job.fetch(job_id, redis_conn)
     except Exception as e: # NoSuchJobError
         # logger.info(job_id)
         print(e)
-
+    return_url = request.build_absolute_uri(reverse('enqueue'))
     if job is not None:
         if job.is_finished:
             # message=job.return_value
             response = dict(state='Job completed',
                             job_key=jid,
-                            code=201,)
+                            return_path=return_url,
+                            code=201,
+                            )
         elif job.is_queued:
             response = dict(status='Job currently in queue',
                             job_key=jid,
-                            code=102,)
+                            return_path=return_url,
+                            code=102,
+                            )
         elif job.is_started:
             response = dict(status='Job still waiting',
                             job_key=jid,
-                            code=100,)
+                            return_path=return_url,
+                            code=100,
+                            )
         elif job.is_failed:
             response = dict(status='Job has failed',
+                            job_key=jid,
+                            return_path=return_url,
                             code=500,
-                            job_key=jid,)
+                            )
     else:
         response = dict(status='Job not found',
+                        job_key=jid,
+                        return_path=return_url,
                         code=404,
-                        job_key=jid,)
+                        )
     return Response(response, 201)
 
 
