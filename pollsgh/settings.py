@@ -54,6 +54,8 @@ THIRD_PARTY_APPS = [
     'django_extensions',
     'bootstrap5',
     'fontawesomefree',
+    'django_rq',
+    'django_redis',
 ]
 POLLSGH_APPS = [
     'accounts',
@@ -63,7 +65,69 @@ POLLSGH_APPS = [
     'poll',
     'report',
 ]
+
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + POLLSGH_APPS
+
+REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+REDIS_PORT = os.getenv('REDIS_PORT', '6379')
+REDIS_DB = os.getenv('REDIS_DB', '0')
+REDIS_USER = os.getenv('REDIS_USER')
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+RQ_QUEUES = {
+    'default': {
+        'HOST': REDIS_HOST,
+        'PORT': REDIS_PORT,
+        'DB': REDIS_DB,
+        # 'USERNAME': REDIS_USER,
+        # 'PASSWORD': REDIS_PASSWORD,
+        # 'DEFAULT_TIMEOUT': 360,
+        # 'REDIS_CLIENT_KWARGS': {
+            # Eventual additional Redis connection arguments
+            # 'ssl_cert_reqs': None,
+        # },
+    },
+    # 'with-sentinel': {
+        # 'SENTINELS': [('localhost', 26736), ('localhost', 26737)],
+        # 'MASTER_NAME': 'redismaster',
+        # 'DB': 0,
+        # Redis username/password
+        # 'USERNAME': 'redis-user',
+        # 'PASSWORD': 'secret',
+        # 'SOCKET_TIMEOUT': 0.3,
+        # 'CONNECTION_KWARGS': {  # Eventual additional Redis connection arguments
+            # 'ssl': True
+        # },
+        # 'SENTINEL_KWARGS': {
+            # Eventual Sentinel connection arguments
+            # If Sentinel also has auth, username/password can be passed here
+            # 'username': 'sentinel-user',
+            # 'password': 'secret',
+        # },
+    # },
+    'high': {
+        'URL': os.getenv('REDISTOGO_URL', f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'), # Heroku
+        'DEFAULT_TIMEOUT': 500,
+    },
+    'low': {
+        'HOST': REDIS_HOST,
+        'PORT': REDIS_PORT,
+        'DB': REDIS_DB,
+    }
+}
+
+# RQ_EXCEPTION_HANDLERS = ['path.to.my.handler']
+
 
 
 MIDDLEWARE = [
@@ -104,14 +168,21 @@ WSGI_APPLICATION = 'pollsgh.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+
+POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
+POSTGRES_PORT = os.getenv('POSTGRES_PORT', '5432')
+POSTGRES_DB = os.getenv('POSTGRES_DB')
+POSTGRES_USER = os.getenv('POSTGRES_USER')
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'polls-gh--db',
-        'PORT': 5432,
+        'NAME': POSTGRES_DB,
+        'USER': POSTGRES_USER,
+        'PASSWORD': POSTGRES_PASSWORD,
+        'HOST': POSTGRES_HOST,
+        'PORT': POSTGRES_PORT,
     },
     'alt': {
         'ENGINE': 'django.db.backends.sqlite3',
