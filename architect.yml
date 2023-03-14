@@ -25,6 +25,12 @@ services:
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }} # ${{ parameters.postgres_password }}
+  redis:
+    image: redis:6
+    interfaces:
+      main:
+        port: 6379
+    command: redis-server
   api:
     build:
       context: .
