@@ -1,68 +1,60 @@
 import json
-from django.conf import settings
-from rest_framework.decorators import api_view
-from rest_framework import status
-from rest_framework.response import Response
-from django.http import JsonResponse
-from time import sleep
-from faker import Faker
-import django_rq
-from ..tasks import collation_task, clear_collation_task
-from rq.job import Job, JobStatus, cancel_job, get_current_job
 import redis
-# from django_q.tasks import async_task
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect, get_object_or_404
+import django_rq
 from django.urls import reverse
+from django.conf import settings
+from rq.job import Job, JobStatus, cancel_job, get_current_job
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from report.tasks import collation_task, clear_collation_task
+from django.shortcuts import render, redirect
 
 
 # Connect to our Redis instance
-redis_instance = redis.StrictRedis(host=settings.REDIS_HOST,
+REDIS_INSTANCE = redis.StrictRedis(host=settings.REDIS_HOST,
                                    port=settings.REDIS_PORT,
                                    db=settings.REDIS_DB)
 
 
 
 def extract_all_values():
-    keys = redis_instance.scan_iter('*')
+    keys = REDIS_INSTANCE.scan_iter('*')
     vals = []
     for key in keys:
-        typeof = redis_instance.type(key)
+        typeof = REDIS_INSTANCE.type(key)
         if typeof == "string":
-            vals = [redis_instance.get(key)]
+            vals = [REDIS_INSTANCE.get(key)]
         if typeof == "hash":
-            vals = redis_instance.hgetall(key)
+            vals = REDIS_INSTANCE.hgetall(key)
         if typeof == "zset":
-            vals = redis_instance.zrange(key, 0, -1)
+            vals = REDIS_INSTANCE.zrange(key, 0, -1)
         if typeof == "list":
-            vals = redis_instance.lrange(key, 0, -1)
+            vals = REDIS_INSTANCE.lrange(key, 0, -1)
         if typeof == "set":
-            vals = redis_instance.smembers(key)
+            vals = REDIS_INSTANCE.smembers(key)
     return vals
 
 
-def extract_redis_value(redis_instance, redis_key):
+def extract_redis_value(REDIS_INSTANCE, redis_key):
     '''Extract the correct type of data based on the data type'''
     # https://stackoverflow.com/questions/37953019/wrongtype-operation-against-a-key-holding-the-wrong-kind-of-value-php
     redis_value = None
  
-    # if not redis_instance:
-    typeof = redis_instance.type(redis_key) # type(key)
+    # if not REDIS_INSTANCE:
+    typeof = REDIS_INSTANCE.type(redis_key) # type(key)
     if typeof in [b'bytes', b'stream']:
-        # redis_value = redis_instance.xread(redis_key.decode("utf-8"))
+        # redis_value = REDIS_INSTANCE.xread(redis_key.decode("utf-8"))
         pass
     elif typeof == b'string':
-        redis_value = redis_instance.get(redis_key.decode("utf-8"))
+        redis_value = REDIS_INSTANCE.get(redis_key.decode("utf-8"))
     elif typeof == b'hash':
-        redis_value = redis_instance.hgetall(redis_key.decode("utf-8")) # HGET or HMGET or HGETALL
+        redis_value = REDIS_INSTANCE.hgetall(redis_key.decode("utf-8")) # HGET or HMGET or HGETALL
     elif typeof == b'set':
-        redis_value = redis_instance.smembers(redis_key.decode("utf-8"))
+        redis_value = REDIS_INSTANCE.smembers(redis_key.decode("utf-8"))
     elif typeof == b'zset':
-        redis_value = redis_instance.zrange(redis_key.decode("utf-8"), 0, -1)
+        redis_value = REDIS_INSTANCE.zrange(redis_key.decode("utf-8"), 0, -1)
     elif typeof == b'list':
-        redis_value = redis_instance.lrange(redis_key.decode("utf-8"), 0, -1)
-    # print('::::::::::::::::::::::::::::::')
-    # print(redis_key, typeof, redis_key.decode("utf-8"), redis_value)
+        redis_value = REDIS_INSTANCE.lrange(redis_key.decode("utf-8"), 0, -1)
     return redis_value
 
 
@@ -94,8 +86,6 @@ def enqueue_collation(request):
         job=job_key,
     )
     return redirect(reverse('dequeue', kwargs=dict(jid=job_key)), response, 201)
-    # return Response(response, 201)
-    # return HttpResponse(response, content_type='application/json')
 
 
 @api_view(['GET'])
@@ -106,40 +96,34 @@ def dequeue_collation(request, jid=None):
 
     job = None
     try:
-        # logger.info(job_id)
         job = Job.fetch(job_id, redis_conn) # fetch Job from redis
     except Exception as e: # NoSuchJobError
+        # logger.info(job_id)
         print(e)
 
     if job is not None:
         if job.is_finished:
+            # message=job.return_value
             response = dict(state='Job completed',
                             job_key=jid,
-                            code=201,
-                            # message=job.return_value
-                            )
+                            code=201,)
         elif job.is_queued:
             response = dict(status='Job currently in queue',
                             job_key=jid,
-                            code=102,
-                            )
+                            code=102,)
         elif job.is_started:
             response = dict(status='Job still waiting',
                             job_key=jid,
-                            code=100,
-                            )
+                            code=100,)
         elif job.is_failed:
             response = dict(status='Job has failed',
                             code=500,
-                            job_key=jid,
-                            )
+                            job_key=jid,)
     else:
         response = dict(status='Job not found',
                         code=404,
-                        job_key=jid,
-                        )
+                        job_key=jid,)
     return Response(response, 201)
-    # return HttpResponse(json.dumps(ret), content_type="application/json")
 
 
 @api_view(['GET', 'POST'])
@@ -147,9 +131,9 @@ def manage_items(request, *args, **kwargs):
     if request.method == 'GET':
         items = {}
         count = 0
-        for key in redis_instance.keys("*"):
+        for key in REDIS_INSTANCE.keys("*"):
             key_value = key.decode("utf-8")
-            redis_value = extract_redis_value(redis_instance, key)
+            redis_value = extract_redis_value(REDIS_INSTANCE, key)
             # print(key, type(key), type(key_value))
             # if redis_value is not None and type(key) == str: # in [str, int, float, bool]:
             if redis_value is not None \
@@ -166,7 +150,7 @@ def manage_items(request, *args, **kwargs):
         item = json.loads(request.body)
         key = list(item.keys())[0]
         value = item[key]
-        redis_instance.set(key, value)
+        REDIS_INSTANCE.set(key, value)
         response = dict(
             msg=f"{key} successfully set to {value}"
         )
@@ -177,7 +161,7 @@ def manage_items(request, *args, **kwargs):
 def manage_item(request, *args, **kwargs):
     if request.method == 'GET':
         if kwargs['key']:
-            value = extract_redis_value(redis_instance, kwargs['key'])
+            value = extract_redis_value(REDIS_INSTANCE, kwargs['key'])
             if value:
                 response = {
                     'key': kwargs['key'],
@@ -196,9 +180,9 @@ def manage_item(request, *args, **kwargs):
         if kwargs['key']:
             request_data = json.loads(request.body)
             new_value = request_data['new_value']
-            value = extract_redis_value(redis_instance, kwargs['key'])
+            value = extract_redis_value(REDIS_INSTANCE, kwargs['key'])
             if value:
-                redis_instance.set(kwargs['key'], new_value)
+                REDIS_INSTANCE.set(kwargs['key'], new_value)
                 response = dict(
                     key=kwargs['key'],
                     value=value,
@@ -215,7 +199,7 @@ def manage_item(request, *args, **kwargs):
 
     elif request.method == 'DELETE':
         if kwargs['key']:
-            result = redis_instance.delete(kwargs['key'])
+            result = REDIS_INSTANCE.delete(kwargs['key'])
             if result == 1:
                 response = dict(
                     msg=f"{kwargs['key']} successfully deleted"
